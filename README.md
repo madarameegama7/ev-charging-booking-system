@@ -44,5 +44,3 @@ It consists of:
 - NoSQL data storage (MongoDB)  
 
 ---
-
-## 🗂️ Repository Structure
