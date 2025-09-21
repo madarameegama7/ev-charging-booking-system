@@ -14,7 +14,6 @@ import UsersOverview from "../../components/admin/UsersOverview";
 import StationsOverview from "../../components/admin/StationsOverview";
 import BookingsSummary from "../../components/admin/BookingsSummery";
 import QuickActions from "../../components/admin/QuickActions";
-import SystemAlerts from "../../components/admin/SystemAlerts";
 
 export default function AdminDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -29,7 +28,6 @@ export default function AdminDashboard() {
     { id: "stations", label: "Stations Overview", icon: MapPin },
     { id: "bookings", label: "Bookings Summary", icon: Calendar },
     { id: "actions", label: "Quick Actions", icon: Zap },
-    { id: "alerts", label: "System Alerts", icon: Bell },
     { id: "settings", label: "Settings", icon: Settings },
   ];
 
@@ -43,19 +41,8 @@ export default function AdminDashboard() {
         return <BookingsSummary />;
       case "actions":
         return <QuickActions />;
-      case "alerts":
-        return <SystemAlerts />;
       case "settings":
-        return (
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-bold text-gray-800">Settings</h3>
-            <p className="text-gray-600 mt-2">
-              Settings content will be implemented here.
-            </p>
-          </div>
-        );
-      default:
-        return <UsersOverview />;
+        return <Settings />;
     }
   };
 
