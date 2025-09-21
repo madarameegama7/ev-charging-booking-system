@@ -1,5 +1,5 @@
 import singinimage from "../assets/common/signinimage.jpg";
-import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
@@ -32,7 +32,9 @@ export default function LoginPage() {
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
               Welcome back
             </h2>
-            <p className="text-gray-600 text-sm mt-2">Please sign in to your account</p>
+            <p className="text-gray-500 text-sm mt-2">
+              Please sign in to your account
+            </p>
           </div>
 
           <div className="space-y-5">
@@ -107,8 +109,7 @@ export default function LoginPage() {
 
             {/* SignIn button */}
             <button className="w-full flex items-center justify-center py-3 bg-blue-400 text-white rounded-lg hover:bg-blue-500 cursor-pointer transition-colors">
-              Sign In
-              <ArrowRight size={18} className="ml-2" />
+              Create Account
             </button>
 
             {/* Signup Link */}
