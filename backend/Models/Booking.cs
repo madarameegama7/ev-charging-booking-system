@@ -1,6 +1,5 @@
 // File: Booking.cs
 // Description: Booking entity with start/end times and status
-// ------------------------------------------------------------
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
