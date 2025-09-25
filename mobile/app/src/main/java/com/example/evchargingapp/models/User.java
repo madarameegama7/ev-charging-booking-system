@@ -1,3 +1,10 @@
+/*
+ * File: User.java
+ * Author: Janudi Adhikari
+ * Date: 2025-09-25
+ * Purpose: Model class representing an EV Owner/User in EVChargingApp
+ */
+
 package com.example.evchargingapp.models;
 
 public class User {
@@ -7,6 +14,8 @@ public class User {
     private String password;
     private boolean isActive;
 
+    // Constructor
+    // Initializes a new User object with all fields
     public User(String nic, String name, String email, String password, boolean isActive) {
         this.nic = nic;
         this.name = name;

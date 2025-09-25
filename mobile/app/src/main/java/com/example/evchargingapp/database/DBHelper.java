@@ -82,7 +82,7 @@ public class DBHelper extends SQLiteOpenHelper {
         cv.put(COL_USER_NIC, nic);
         cv.put(COL_USER_NAME, name);
         cv.put(COL_USER_EMAIL, email);
-        cv.put(COL_USER_PASSWORD, password); // for assignment; consider hashing in production
+        cv.put(COL_USER_PASSWORD, password); // Consider hashing in production
         cv.put(COL_USER_ACTIVE, 1);
         long res = db.insertWithOnConflict(TABLE_USERS, null, cv, SQLiteDatabase.CONFLICT_IGNORE);
         return res != -1;

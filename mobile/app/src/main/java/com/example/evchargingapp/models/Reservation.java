@@ -1,3 +1,10 @@
+/*
+ * File: Reservation.java
+ * Author: Janudi Adhikari
+ * Date: 2025-09-25
+ * Purpose: Model class representing a Reservation in EVChargingApp
+ */
+
 package com.example.evchargingapp.models;
 
 public class Reservation {
@@ -7,6 +14,8 @@ public class Reservation {
     private String dateTime;
     private String status;
 
+    // Constructor
+    // Initializes a new Reservation object with all fields
     public Reservation(String reservationId, String nic, String stationId, String dateTime, String status) {
         this.reservationId = reservationId;
         this.nic = nic;
