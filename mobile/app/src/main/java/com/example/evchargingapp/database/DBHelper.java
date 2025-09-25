@@ -2,7 +2,7 @@
  * File: DBHelper.java
  * Author: Janudi Adhikari
  * Date: 2025-09-25
- * Purpose: SQLite helper for EVChargingApp - Users and Reservations tables
+ * Purpose: SQLite helper for EVChargingApp - Users and Reservations tables with models
  */
 
 package com.example.evchargingapp.database;
@@ -12,7 +12,14 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
 import androidx.annotation.Nullable;
+
+import com.example.evchargingapp.models.User;
+import com.example.evchargingapp.models.Reservation;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DBHelper extends SQLiteOpenHelper {
 
@@ -27,7 +34,7 @@ public class DBHelper extends SQLiteOpenHelper {
     public static final String COL_USER_PASSWORD = "Password";
     public static final String COL_USER_ACTIVE = "IsActive"; // 1 active, 0 inactive
 
-    // Reservations table (starter)
+    // Reservations table
     public static final String TABLE_RES = "Reservations";
     public static final String COL_RES_ID = "ReservationID";
     public static final String COL_RES_NIC = "NIC";
@@ -62,107 +69,103 @@ public class DBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // Simple strategy for assignment: drop and recreate
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_RES);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_USERS);
         onCreate(db);
     }
 
-    /* ---------- Users methods ---------- */
+    /* ---------- Users CRUD ---------- */
 
-    // Add a new user. Returns true if inserted (false if already exists)
     public boolean addUser(String nic, String name, String email, String password) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put(COL_USER_NIC, nic);
         cv.put(COL_USER_NAME, name);
         cv.put(COL_USER_EMAIL, email);
-        cv.put(COL_USER_PASSWORD, password); // NOTE: consider hashing for production
+        cv.put(COL_USER_PASSWORD, password); // for assignment; consider hashing in production
         cv.put(COL_USER_ACTIVE, 1);
         long res = db.insertWithOnConflict(TABLE_USERS, null, cv, SQLiteDatabase.CONFLICT_IGNORE);
         return res != -1;
     }
 
-    // Return Cursor for user by NIC (caller should close cursor)
-    public Cursor getUserByNIC(String nic) {
-        SQLiteDatabase db = getReadableDatabase();
-        return db.query(TABLE_USERS, null, COL_USER_NIC + "=?", new String[]{nic}, null, null, null);
-    }
-
-    // Validate credentials (returns true if credentials match and account active)
-    public boolean validateUser(String nic, String password) {
-        Cursor c = getUserByNIC(nic);
-        if (c == null) return false;
-        try {
-            if (c.moveToFirst()) {
-                String stored = c.getString(c.getColumnIndexOrThrow(COL_USER_PASSWORD));
-                int isActive = c.getInt(c.getColumnIndexOrThrow(COL_USER_ACTIVE));
-                return isActive == 1 && stored.equals(password);
-            }
-        } finally {
+    public User getUserObjectByNIC(String nic) {
+        Cursor c = getReadableDatabase().query(TABLE_USERS, null, COL_USER_NIC + "=?",
+                new String[]{nic}, null, null, null);
+        if (c != null && c.moveToFirst()) {
+            User user = new User(
+                    c.getString(c.getColumnIndexOrThrow(COL_USER_NIC)),
+                    c.getString(c.getColumnIndexOrThrow(COL_USER_NAME)),
+                    c.getString(c.getColumnIndexOrThrow(COL_USER_EMAIL)),
+                    c.getString(c.getColumnIndexOrThrow(COL_USER_PASSWORD)),
+                    c.getInt(c.getColumnIndexOrThrow(COL_USER_ACTIVE)) == 1
+            );
             c.close();
+            return user;
         }
-        return false;
+        return null;
     }
 
-    // Check if user exists
+    public boolean validateUserObject(String nic, String password) {
+        User user = getUserObjectByNIC(nic);
+        return user != null && user.isActive() && user.getPassword().equals(password);
+    }
+
     public boolean userExists(String nic) {
-        Cursor c = getUserByNIC(nic);
-        if (c == null) return false;
-        try {
-            return c.moveToFirst();
-        } finally {
-            c.close();
-        }
+        User user = getUserObjectByNIC(nic);
+        return user != null;
     }
 
-    // Set active / inactive
     public int setUserActive(String nic, boolean active) {
-        SQLiteDatabase db = getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put(COL_USER_ACTIVE, active ? 1 : 0);
-        return db.update(TABLE_USERS, cv, COL_USER_NIC + "=?", new String[]{nic});
+        return getWritableDatabase().update(TABLE_USERS, cv, COL_USER_NIC + "=?", new String[]{nic});
     }
 
-    // Update basic profile fields
     public int updateUser(String nic, String name, String email, String password) {
-        SQLiteDatabase db = getWritableDatabase();
         ContentValues cv = new ContentValues();
         if (name != null) cv.put(COL_USER_NAME, name);
         if (email != null) cv.put(COL_USER_EMAIL, email);
         if (password != null) cv.put(COL_USER_PASSWORD, password);
-        return db.update(TABLE_USERS, cv, COL_USER_NIC + "=?", new String[]{nic});
+        return getWritableDatabase().update(TABLE_USERS, cv, COL_USER_NIC + "=?", new String[]{nic});
     }
 
-    // Delete user
     public int deleteUser(String nic) {
-        SQLiteDatabase db = getWritableDatabase();
-        return db.delete(TABLE_USERS, COL_USER_NIC + "=?", new String[]{nic});
+        return getWritableDatabase().delete(TABLE_USERS, COL_USER_NIC + "=?", new String[]{nic});
     }
 
-    /* ---------- Reservations methods (basic) ---------- */
+    /* ---------- Reservations CRUD ---------- */
 
     public boolean addOrUpdateReservation(String resId, String nic, String stationId, String dateTime, String status) {
-        SQLiteDatabase db = getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put(COL_RES_ID, resId);
         cv.put(COL_RES_NIC, nic);
         cv.put(COL_RES_STATION, stationId);
         cv.put(COL_RES_DATETIME, dateTime);
         cv.put(COL_RES_STATUS, status);
-        long res = db.insertWithOnConflict(TABLE_RES, null, cv, SQLiteDatabase.CONFLICT_REPLACE);
+        long res = getWritableDatabase().insertWithOnConflict(TABLE_RES, null, cv, SQLiteDatabase.CONFLICT_REPLACE);
         return res != -1;
     }
 
-    // Get reservations Cursor by NIC
-    public Cursor getReservationsByNIC(String nic) {
-        SQLiteDatabase db = getReadableDatabase();
-        return db.query(TABLE_RES, null, COL_RES_NIC + "=?", new String[]{nic}, null, null, COL_RES_DATETIME + " DESC");
+    public List<Reservation> getReservationsListByNIC(String nic) {
+        List<Reservation> list = new ArrayList<>();
+        Cursor c = getReadableDatabase().query(TABLE_RES, null, COL_RES_NIC + "=?",
+                new String[]{nic}, null, null, COL_RES_DATETIME + " DESC");
+        if (c != null) {
+            while (c.moveToNext()) {
+                list.add(new Reservation(
+                        c.getString(c.getColumnIndexOrThrow(COL_RES_ID)),
+                        c.getString(c.getColumnIndexOrThrow(COL_RES_NIC)),
+                        c.getString(c.getColumnIndexOrThrow(COL_RES_STATION)),
+                        c.getString(c.getColumnIndexOrThrow(COL_RES_DATETIME)),
+                        c.getString(c.getColumnIndexOrThrow(COL_RES_STATUS))
+                ));
+            }
+            c.close();
+        }
+        return list;
     }
 
-    // Delete reservation
     public int deleteReservation(String reservationId) {
-        SQLiteDatabase db = getWritableDatabase();
-        return db.delete(TABLE_RES, COL_RES_ID + "=?", new String[]{reservationId});
+        return getWritableDatabase().delete(TABLE_RES, COL_RES_ID + "=?", new String[]{reservationId});
     }
 }
