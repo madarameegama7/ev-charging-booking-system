@@ -1,5 +1,4 @@
 // File: AuthController.cs
-// Author: <Your Name / IT Number>
 // Description: Issues JWT tokens for authenticated users
 // ------------------------------------------------------------
 using Backend.Models;

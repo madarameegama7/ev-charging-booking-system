@@ -1,5 +1,4 @@
 // File: BookingController.cs
-// Author: <Your Name / IT Number>
 // Description: Web API controller for booking reservations and updates
 // ------------------------------------------------------------
 using Backend.Models;
