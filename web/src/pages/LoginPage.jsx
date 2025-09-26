@@ -2,12 +2,26 @@ import singinimage from "../assets/common/signinimage.jpg";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { login } from "../api/auth";
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("Backoffice");
   const navigate = useNavigate();
+  const onSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      // Map email/password UI to NIC-based demo login
+      // For demo: email box will be used for NIC, and Backoffice role by default
+      const nic = email.trim();
+      await login(nic, role);
+      navigate("/admin/dashboard");
+    } catch (err) {
+      alert("Login failed");
+    }
+  };
 
   // Add the missing function
   const togglePasswordVisibility = () => {
@@ -44,19 +58,33 @@ export default function LoginPage() {
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700"
               >
-                Email Address
+                NIC
               </label>
               <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 hover:border-gray-400 focus-within:border-black">
                 <Mail size={18} className="text-gray-400 mr-2" />
                 <input
                   id="email"
-                  type="email"
+                  type="text"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="name@gmail.com"
+                  placeholder="e.g. 123456789V"
                   className="w-full text-sm focus:outline-none placeholder:text-gray-400"
                 />
               </div>
+            </div>
+
+            {/* Role */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Role</label>
+              <select
+                className="w-full border border-gray-300 rounded-lg px-3 py-2"
+                value={role}
+                onChange={(e)=>setRole(e.target.value)}
+              >
+                <option value="Backoffice">Backoffice</option>
+                <option value="Owner">Owner</option>
+                <option value="Operator">Operator</option>
+              </select>
             </div>
 
             {/*Password*/}
@@ -66,11 +94,8 @@ export default function LoginPage() {
                   htmlFor="password"
                   className="text-sm font-medium text-gray-700"
                 >
-                  Password
+                  Password (not required)
                 </label>
-                <button className="text-sm text-black hover:underline cursor-pointer">
-                  Forgot password?
-                </button>
               </div>
               <div className="relative mt-1">
                 <Lock
@@ -108,8 +133,8 @@ export default function LoginPage() {
             </div>
 
             {/* SignIn button */}
-            <button className="w-full flex items-center justify-center py-3 bg-blue-400 text-white rounded-lg hover:bg-blue-500 cursor-pointer transition-colors">
-              Create Account
+            <button onClick={onSubmit} className="w-full flex items-center justify-center py-3 bg-blue-400 text-white rounded-lg hover:bg-blue-500 cursor-pointer transition-colors">
+              Sign In
             </button>
 
             {/* Signup Link */}
