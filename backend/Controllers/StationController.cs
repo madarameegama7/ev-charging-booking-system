@@ -1,6 +1,5 @@
 // File: StationController.cs
 // Description: Web API controller for station management CRUD and activation
-// ------------------------------------------------------------
 using Backend.Models;
 using Backend.Services;
 using Microsoft.AspNetCore.Mvc;

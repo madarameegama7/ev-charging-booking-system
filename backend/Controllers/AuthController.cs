@@ -1,6 +1,5 @@
 // File: AuthController.cs
 // Description: Issues JWT tokens for authenticated users
-// ------------------------------------------------------------
 using Backend.Models;
 using Backend.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -20,7 +19,7 @@ namespace Backend.Controllers
 			_tokenService = tokenService;
 		}
 
-		/// <summary>Simple login by NIC and role for demo; replace with password later if needed.</summary>
+		
 		[HttpPost("login")]
 		public async Task<IActionResult> Login([FromBody] User user)
 		{

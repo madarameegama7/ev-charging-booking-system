@@ -1,16 +1,13 @@
 
 // File: MongoContext.cs
 // Description: MongoDB context exposing client and database handles
-// ------------------------------------------------------------
 using Backend.Settings;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
 namespace Backend.Data
 {
-	/// <summary>
-	/// Provides MongoDB database handle and common helpers.
-	/// </summary>
+	//Provides MongoDB database handle and common helpers.
 	public class MongoContext
 	{
 		public IMongoDatabase Database { get; }

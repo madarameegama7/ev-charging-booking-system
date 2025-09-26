@@ -1,6 +1,5 @@
 ﻿// File: UserController.cs
 // Description: Web API controller for managing users
-// ------------------------------------------------------------
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Backend.Models;
@@ -9,9 +8,8 @@ using MongoDB.Driver;
 
 namespace Backend.Controllers
 {
-	/// <summary>
-	/// Manages users across roles. Role checks will be added after JWT integration.
-	/// </summary>
+	
+	//Manages users across roles. Role checks will be added after JWT integration
 	[ApiController]
 	[Route("api/[controller]")]
 	public class UserController : ControllerBase
@@ -23,7 +21,7 @@ namespace Backend.Controllers
 			_userService = userService;
 		}
 
-		/// <summary>Fetch all users (Backoffice only later).</summary>
+		//Fetch all users (Backoffice only)
 		[HttpGet]
 		[Authorize(Roles = "Backoffice")]
 		public async Task<IActionResult> GetUsers()
@@ -33,10 +31,8 @@ namespace Backend.Controllers
 		}
 
 
-		/// <summary>
-		/// Create user with NIC and role. Bootstrap rule: if no users exist yet,
-		/// allow anonymous creation but only for a Backoffice user. Otherwise requires Backoffice role.
-		/// </summary>
+		//Create user with NIC and role. Bootstrap rule: if no users exist yet,
+		//allow anonymous creation but only for a Backoffice user. Otherwise requires Backoffice role
 		[HttpPost]
 		public async Task<IActionResult> Create([FromBody] User user)
 		{
@@ -71,7 +67,7 @@ namespace Backend.Controllers
 			}
 		}
 
-		/// <summary>Get by NIC.</summary>
+		//Get by NIC
 		[HttpGet("{nic}")]
 		[Authorize(Roles = "Backoffice,Owner,Operator")]
 		public async Task<IActionResult> GetByNic(string nic)
@@ -80,7 +76,7 @@ namespace Backend.Controllers
 			return user is null ? NotFound() : Ok(user);
 		}
 
-		/// <summary>Update by NIC (Backoffice or Owner self later).</summary>
+		//Update by NIC (Backoffice or Owner)
 		[HttpPut("{nic}")]
 		[Authorize(Roles = "Backoffice,Owner")]
 		public async Task<IActionResult> Update(string nic, [FromBody] User update)
@@ -89,7 +85,7 @@ namespace Backend.Controllers
 			return updated is null ? NotFound() : Ok(updated);
 		}
 
-		/// <summary>Activate/Deactivate by NIC.</summary>
+		//Activate/Deactivate by NIC
 		[HttpPatch("{nic}/status")]
 		[Authorize(Roles = "Backoffice")]
 		public async Task<IActionResult> SetStatus(string nic, [FromQuery] bool isActive)

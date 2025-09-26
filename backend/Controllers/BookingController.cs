@@ -1,6 +1,6 @@
 // File: BookingController.cs
 // Description: Web API controller for booking reservations and updates
-// ------------------------------------------------------------
+
 using Backend.Models;
 using Backend.Services;
 using Microsoft.AspNetCore.Mvc;
