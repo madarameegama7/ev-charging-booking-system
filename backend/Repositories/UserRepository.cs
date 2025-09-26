@@ -40,6 +40,12 @@ namespace Backend.Repositories
 			return await _collection.CountDocumentsAsync(_ => true);
 		}
 
+		public async Task<bool> DeleteByNicAsync(string nic)
+		{
+			var result = await _collection.DeleteOneAsync(x => x.NIC == nic);
+			return result.DeletedCount > 0;
+		}
+
 		public async Task<User?> UpdateByNicAsync(string nic, User update)
 		{
 			await _collection.ReplaceOneAsync(x => x.NIC == nic, update, new ReplaceOptions { IsUpsert = false });

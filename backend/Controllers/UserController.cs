@@ -93,5 +93,14 @@ namespace Backend.Controllers
 			var updated = await _userService.SetStatusAsync(nic, isActive);
 			return updated is null ? NotFound() : Ok(updated);
 		}
+
+		//Delete user by NIC
+		[HttpDelete("{nic}")]
+		[Authorize(Roles = "Backoffice")]
+		public async Task<IActionResult> Delete(string nic)
+		{
+			var ok = await _userService.DeleteByNicAsync(nic);
+			return ok ? NoContent() : NotFound();
+		}
 	}
 }

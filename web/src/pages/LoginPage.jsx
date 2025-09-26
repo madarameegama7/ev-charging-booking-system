@@ -17,7 +17,9 @@ export default function LoginPage() {
       // For demo: email box will be used for NIC, and Backoffice role by default
       const nic = email.trim();
       await login(nic, role);
-      navigate("/admin/dashboard");
+      if (role === "Backoffice") navigate("/admin/dashboard");
+      else if (role === "Operator") navigate("/operator/dashboard");
+      else navigate("/home");
     } catch (err) {
       alert("Login failed");
     }

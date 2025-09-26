@@ -12,6 +12,7 @@ namespace Backend.Services
 		Task<User?> UpdateByNicAsync(string nic, User update);
 		Task<User?> SetStatusAsync(string nic, bool isActive);
 		Task<long> CountAsync();
+		Task<bool> DeleteByNicAsync(string nic);
 	}
 }
 
