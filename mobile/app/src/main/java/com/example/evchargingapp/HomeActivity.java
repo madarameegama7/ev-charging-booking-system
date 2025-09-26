@@ -18,7 +18,7 @@ import androidx.appcompat.app.AppCompatActivity;
 public class HomeActivity extends AppCompatActivity {
 
     private TextView tvWelcome;
-    private Button btnAddReservation, btnViewReservations, btnLogout;
+    private Button btnAddReservation, btnViewReservations, btnLogout, btnProfile;
     private String userNic;
 
     @Override
@@ -34,6 +34,7 @@ public class HomeActivity extends AppCompatActivity {
         btnAddReservation = findViewById(R.id.btnAddReservation);
         btnViewReservations = findViewById(R.id.btnViewReservations);
         btnLogout = findViewById(R.id.btnLogout);
+        btnProfile = findViewById(R.id.btnProfile);
 
         // Set welcome text
         tvWelcome.setText("Welcome, " + userNic + "!");
@@ -48,6 +49,12 @@ public class HomeActivity extends AppCompatActivity {
         btnViewReservations.setOnClickListener(v -> {
             Intent intent = new Intent(HomeActivity.this, ViewReservationsActivity.class);
             intent.putExtra("USER_NIC", userNic);
+            startActivity(intent);
+        });
+
+        btnProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, UpdateProfileActivity.class);
+            intent.putExtra("USER_NIC", userNic); // pass logged-in user's NIC
             startActivity(intent);
         });
 
