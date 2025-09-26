@@ -6,6 +6,7 @@ namespace Backend.Repositories
 {
 	public interface IBookingRepository
 	{
+		Task<List<Booking>> GetAllAsync();
 		Task<Booking> CreateAsync(Booking booking);
 		Task<Booking?> GetByIdAsync(string id);
 		Task<List<Booking>> GetByOwnerAsync(string nic);
