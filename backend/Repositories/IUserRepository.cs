@@ -12,6 +12,7 @@ namespace Backend.Repositories
 		Task<User> CreateAsync(User user);
 		Task<User?> UpdateByNicAsync(string nic, User update);
 		Task<long> CountAsync();
+		Task<bool> DeleteByNicAsync(string nic);
 	}
 }
 
