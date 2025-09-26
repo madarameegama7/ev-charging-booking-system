@@ -4,9 +4,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Backend.Settings
 {
-	/// <summary>
-	/// Strongly typed MongoDB settings bound from configuration.
-	/// </summary>
+
 	public class MongoDBSettings
 	{
 		public string ConnectionString { get; set; } = string.Empty;
