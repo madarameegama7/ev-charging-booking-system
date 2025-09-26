@@ -11,6 +11,7 @@ namespace Backend.Repositories
 	{
 		private const string CollectionName = "bookings";
 		private readonly IMongoCollection<Booking> _collection;
+		public Task<List<Booking>> GetAllAsync() => _collection.Find(_ => true).ToListAsync();
 
 		public BookingRepository(MongoContext context)
 		{
