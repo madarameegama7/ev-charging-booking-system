@@ -6,6 +6,7 @@ namespace Backend.Services
 {
 	public interface IBookingService
 	{
+		Task<List<Booking>> GetAllAsync();
 		Task<Booking> CreateAsync(Booking booking);
 		Task<Booking?> GetByIdAsync(string id);
 		Task<List<Booking>> GetByOwnerAsync(string nic);
