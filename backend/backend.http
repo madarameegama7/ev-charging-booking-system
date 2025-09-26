@@ -1,6 +1,116 @@
-@backend_HostAddress = http://localhost:5010
+# EV Charging Booking System API Tests
+# Run these in order to test the complete flow
 
-GET {{backend_HostAddress}}/weatherforecast/
-Accept: application/json
+### Step 1: Create Backoffice user
+POST https://localhost:5001/api/User
+Content-Type: application/json
 
-###
+{
+  "nic": "BO123456789V",
+  "role": "Backoffice",
+  "isActive": true
+}
+
+### Step 2: Create an EV Owner
+POST https://localhost:5001/api/User
+Content-Type: application/json
+
+{
+  "nic": "OWNER123456789V",
+  "role": "Owner",
+  "isActive": true
+}
+
+### Step 3: Login as Backoffice (copy the token from response)
+POST https://localhost:5001/api/Auth/login
+Content-Type: application/json
+
+{
+  "nic": "BO123456789V",
+  "role": "Backoffice"
+}
+
+### Step 4: Login as Owner (copy the token from response)
+POST https://localhost:5001/api/Auth/login
+Content-Type: application/json
+
+{
+  "nic": "OWNER123456789V",
+  "role": "Owner"
+}
+
+### Step 5: List all users (Backoffice only)
+GET https://localhost:5001/api/User
+Authorization: Bearer {{backoffice_token}}
+
+### Step 6: Create a charging station (Backoffice only)
+POST https://localhost:5001/api/Station
+Authorization: Bearer {{backoffice_token}}
+Content-Type: application/json
+
+{
+  "name": "Colombo Central Station",
+  "location": { "lat": 6.9271, "lng": 79.8612 },
+  "type": "DC",
+  "availableSlots": 4
+}
+
+### Step 7: Get all stations (public)
+GET https://localhost:5001/api/Station
+
+### Step 8: Create a booking (Owner)
+POST https://localhost:5001/api/Booking
+Authorization: Bearer {{owner_token}}
+Content-Type: application/json
+
+{
+  "stationId": "{{stationId}}",
+  "ownerNIC": "OWNER123456789V",
+  "startTimeUtc": "2025-10-01T10:00:00Z",
+  "endTimeUtc": "2025-10-01T12:00:00Z"
+}
+
+### Step 9: Get bookings by owner
+GET https://localhost:5001/api/Booking/owner/OWNER123456789V
+Authorization: Bearer {{owner_token}}
+
+### Step 10: Update booking (at least 12 hours before start)
+PUT https://localhost:5001/api/Booking/{{bookingId}}
+Authorization: Bearer {{owner_token}}
+Content-Type: application/json
+
+{
+  "stationId": "{{stationId}}",
+  "ownerNIC": "OWNER123456789V",
+  "startTimeUtc": "2025-10-01T11:00:00Z",
+  "endTimeUtc": "2025-10-01T13:00:00Z",
+  "status": 1
+}
+
+### Step 11: Try to deactivate station with active bookings (should fail)
+PATCH https://localhost:5001/api/Station/{{stationId}}/status?isActive=false
+Authorization: Bearer {{backoffice_token}}
+
+### Step 12: Test validation - booking too far in future (should fail)
+POST https://localhost:5001/api/Booking
+Authorization: Bearer {{owner_token}}
+Content-Type: application/json
+
+{
+  "stationId": "{{stationId}}",
+  "ownerNIC": "OWNER123456789V",
+  "startTimeUtc": "2025-12-01T10:00:00Z",
+  "endTimeUtc": "2025-12-01T12:00:00Z"
+}
+
+### Step 13: Test validation - booking too soon (should fail)
+POST https://localhost:5001/api/Booking
+Authorization: Bearer {{owner_token}}
+Content-Type: application/json
+
+{
+  "stationId": "{{stationId}}",
+  "ownerNIC": "OWNER123456789V",
+  "startTimeUtc": "2025-09-25T10:00:00Z",
+  "endTimeUtc": "2025-09-25T12:00:00Z"
+}
