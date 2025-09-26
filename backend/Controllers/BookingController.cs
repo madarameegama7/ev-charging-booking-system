@@ -23,6 +23,13 @@ namespace Backend.Controllers
 			return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
 		}
 
+		[HttpGet]
+		[Authorize(Roles = "Backoffice")]
+		public async Task<IActionResult> GetAll()
+		{
+			return Ok(await _service.GetAllAsync());
+		}
+
 		[HttpGet("{id}")]
 		[Authorize(Roles = "Owner,Operator,Backoffice")]
 		public async Task<IActionResult> GetById(string id)
