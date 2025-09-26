@@ -1,28 +1,22 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Users, UserPlus, BarChart3, Activity } from "lucide-react";
+import { listUsers, createUser, setUserStatus, updateUser, deleteUser } from "../../api/users";
 
 export default function UsersOverview() {
-  // Extract table data
-  const users = [
-    {
-      nic: "199845678V",
-      name: "Geethmani M.",
-      email: "admin@gmail.com",
-      role: "Backoffice",
-      status: "Active",
-      statusColor: "text-green-600"
-    },
-    {
-      nic: "200012345V",
-      name: "Nuwan P.",
-      email: "nuwan@gmail.com",
-      role: "EV Owner",
-      status: "Inactive",
-      statusColor: "text-red-600"
-    }
-  ];
+  const [users, setUsers] = useState([]);
+  const [creating, setCreating] = useState(false);
+  const [form, setForm] = useState({ nic: '', role: 'Operator', isActive: true });
 
-  const columns = ["UserID", "Full Name", "Email", "Role", "Status", "Actions"];
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await listUsers();
+        setUsers(data);
+      } catch {}
+    })();
+  }, []);
+
+  const columns = ["NIC", "Role", "Status", "Actions"];
 
   return (
     <div className="flex flex-col gap-12">
@@ -70,11 +64,38 @@ export default function UsersOverview() {
       <div className="bg-white rounded-xl shadow-lg p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-2xl font-bold text-gray-800">User Management</h3>
-          <button className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center cursor-pointer">
+          <button onClick={()=>setCreating(true)} className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center cursor-pointer">
             <UserPlus size={20} className="mr-2" />
             Create User
           </button>
         </div>
+
+        {creating && (
+          <div className="mb-4 grid grid-cols-1 md:grid-cols-4 gap-2">
+            <input className="border p-2" placeholder="NIC" value={form.nic} onChange={(e)=>setForm({...form, nic:e.target.value})} />
+            <select className="border p-2" value={form.role} onChange={(e)=>setForm({...form, role:e.target.value})}>
+              <option value="Operator">Operator</option>
+              <option value="Backoffice">Backoffice</option>
+              <option value="Owner">Owner</option>
+            </select>
+            <select className="border p-2" value={form.isActive? 'true':'false'} onChange={(e)=>setForm({...form, isActive:e.target.value==='true'})}>
+              <option value="true">Active</option>
+              <option value="false">Inactive</option>
+            </select>
+            <div className="flex gap-2">
+              <button className="bg-green-600 text-white px-3" onClick={async()=>{
+                try {
+                  await createUser(form);
+                  const data = await listUsers();
+                  setUsers(data);
+                  setCreating(false);
+                  setForm({ nic:'', role:'Operator', isActive:true });
+                } catch (e) { alert(e.message); }
+              }}>Save</button>
+              <button className="bg-gray-300 px-3" onClick={()=>setCreating(false)}>Cancel</button>
+            </div>
+          </div>
+        )}
 
         {/* Clean Table Implementation */}
         <div className="overflow-x-auto">
@@ -89,19 +110,37 @@ export default function UsersOverview() {
                 </tr>
               </thead>
               <tbody>
-                {users.map((user, index) => (
+                {users.map((user) => (
                   <tr key={user.nic} className="border-b hover:bg-gray-50 transition-colors">
                     <td className="p-3">{user.nic}</td>
-                    <td className="p-3">{user.name}</td>
-                    <td className="p-3">{user.email}</td>
-                    <td className="p-3">{user.role}</td>
-                    <td className={`p-3 font-medium ${user.statusColor}`}>
-                      {user.status}
-                    </td>
                     <td className="p-3">
-                      <button className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors cursor-pointer">
-                        Edit
-                      </button>
+                      <select className="border p-1" value={user.role} onChange={async(e)=>{
+                        const updated = { ...user, role: e.target.value };
+                        await updateUser(user.nic, updated);
+                        const data = await listUsers();
+                        setUsers(data);
+                      }}>
+                        <option value="Backoffice">Backoffice</option>
+                        <option value="Operator">Operator</option>
+                        <option value="Owner">Owner</option>
+                      </select>
+                    </td>
+                    <td className="p-3">{user.isActive ? 'Active' : 'Inactive'}</td>
+                    <td className="p-3 flex gap-2">
+                      <button className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded transition-colors cursor-pointer" onClick={async()=>{
+                        const newActive = !user.isActive;
+                        await setUserStatus(user.nic, newActive);
+                        const data = await listUsers();
+                        setUsers(data);
+                      }}>Toggle Active</button>
+                      <button className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded transition-colors cursor-pointer" onClick={async()=>{
+                        if (!confirm(`Delete ${user.nic}?`)) return;
+                        try {
+                          await deleteUser(user.nic);
+                          const data = await listUsers();
+                          setUsers(data);
+                        } catch(e) { alert(e.message); }
+                      }}>Delete</button>
                     </td>
                   </tr>
                 ))}

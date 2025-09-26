@@ -10,6 +10,7 @@ namespace Backend.Services
 	{
 		private readonly IBookingRepository _repo;
 		private readonly IStationRepository _stationRepo;
+		public Task<List<Booking>> GetAllAsync() => _repo.GetAllAsync();
 
 		public BookingService(IBookingRepository repo, IStationRepository stationRepo)
 		{

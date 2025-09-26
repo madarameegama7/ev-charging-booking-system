@@ -42,6 +42,8 @@ namespace Backend.Services
 		}
 
 		public Task<long> CountAsync() => _repo.CountAsync();
+
+		public Task<bool> DeleteByNicAsync(string nic) => _repo.DeleteByNicAsync(nic);
 	}
 }
 
