@@ -4,12 +4,9 @@ import { Target, Eye } from "lucide-react";
 export default function AboutUs() {
   return (
     <div id="about-us" className="min-h-screen py-20">
-      <div className="max-w-7xl mx-auto px-6 space-y-12">
+      <div className="max-w-7xl mx-auto flex flex-col gap-10 mt-10">
         {/* Hero Section - Image and Text */}
-        <div
-          className="rounded-3xl overflow-hidden shadow-2xl"
-          style={{ backgroundColor: "#DDDBC0" }}
-        >
+        <div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center max-w-6xl mx-auto">
             {/* Left: Image */}
             <div className="flex justify-center lg:justify-end">
@@ -77,7 +74,7 @@ export default function AboutUs() {
                 </div>
                 <h3 className="text-3xl md:text-4xl font-bold">Our Vision</h3>
               </div>
-              <div className="h-1 w-20 bg-gray-400"></div>
+
               <p className="text-lg leading-relaxed text-black">
                 To become the leading platform that connects EV owners and
                 charging stations, enabling a seamless, sustainable, and
@@ -98,7 +95,7 @@ export default function AboutUs() {
                 </div>
                 <h3 className="text-3xl md:text-4xl font-bold">Our Mission</h3>
               </div>
-              <div className="h-1 w-20 bg-gray-400"></div>
+
               <p className="text-lg leading-relaxed text-black">
                 Our mission is to simplify EV charging through smart booking,
                 reliable station management, and real-time connectivity. We

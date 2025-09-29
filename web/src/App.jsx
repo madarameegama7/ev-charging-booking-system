@@ -10,7 +10,8 @@ import Home from "./pages/Home";
 import Dashboard from "./pages/admin/Dashboard";
 import Profile from "./pages/Profile";
 import Layout from "./components/Layout";
-
+import ContactPage from "./components/ContactUS";
+import AboutUs from "./components/AboutUs";
 
 export default function App() {
   return (
@@ -24,7 +25,25 @@ export default function App() {
             </Layout>
           }
         />
-      
+
+        <Route
+          path="/contactus"
+          element={
+            <Layout>
+              <ContactPage />
+            </Layout>
+          }
+        />
+
+         <Route
+          path="/aboutus"
+          element={
+            <Layout>
+              <AboutUs />
+            </Layout>
+          }
+        />
+
         <Route
           path="/login"
           element={
