@@ -1,16 +1,33 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 
 export default function Navbar() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("home");
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const navItems = [
-    { id: "home", label: "Home" },
-    { id: "about", label: "About Us" },
-    { id: "contact", label: "Contact Us" },
-    { id: "dashboard", label: "Dashboard" },
+    { id: "home", label: "Home", path: "/" },
+    { id: "about", label: "About Us", path: "/aboutus" },
+    { id: "contact", label: "Contact Us", path: "/contactus" },
+    { id: "dashboard", label: "Dashboard", path: null },
   ];
+
+  // Set active tab based on current route
+  useEffect(() => {
+    const currentPath = location.pathname;
+    if (currentPath === "/") {
+      setActiveTab("home");
+    } else if (currentPath === "/aboutus") {
+      setActiveTab("about");
+    } else if (currentPath === "/contactus") {
+      setActiveTab("contact");
+    }
+  }, [location.pathname]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,6 +40,7 @@ export default function Navbar() {
       // Hide navbar when scrolling down
       else if (currentScrollY > lastScrollY && currentScrollY > 100) {
         setIsVisible(false);
+        setIsMobileMenuOpen(false); // Close mobile menu when hiding navbar
       }
       // Show navbar when scrolling up
       else if (currentScrollY < lastScrollY) {
@@ -39,48 +57,134 @@ export default function Navbar() {
     };
   }, [lastScrollY]);
 
+  const handleNavClick = (item) => {
+    if (item.path) {
+      setActiveTab(item.id);
+      navigate(item.path);
+      setIsMobileMenuOpen(false); // Close mobile menu after navigation
+    }
+  };
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 
-        backdrop-blur-sm bg-black/20 
-        transition-transform duration-300 ease-in-out ${
+      className={`fixed top-0 left-0 right-0 z-50
+        duration-300 ease-in-out ${
           isVisible
             ? "transform translate-y-6"
             : "transform -translate-y-[calc(100%+1.5rem)]"
         }`}
     >
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-4 py-4">
-        {/* Logo */}
-        <div className="flex">
-          <h1 className="text-white font-bold text-xl">Logo</h1>
-        </div>
-
-        {/* Navigation Tabs - Centered */}
-        <div className="absolute left-1/2 transform -translate-x-1/2">
-          <div className="rounded-full px-2 py-2 flex items-center space-x-2 border border-white/40">
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`
-                  px-6 py-1 rounded-full font-medium transition-all duration-300
-                  ${
-                    activeTab === item.id
-                      ? "bg-gray-500 text-white"
-                      : "text-white cursor-pointer"
-                  }
-                `}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="px-4 sm:px-6 py-3 sm:py-4">
+          <div className="flex items-center justify-between">
+            {/* Logo */}
+            <div className="flex-shrink-0">
+              <h1
+                className="text-black font-bold text-lg sm:text-xl cursor-pointer"
+                onClick={() => {
+                  navigate("/");
+                  setIsMobileMenuOpen(false);
+                }}
               >
-                {item.label}
+                Logo
+              </h1>
+            </div>
+
+            {/* Desktop Navigation - Hidden on mobile */}
+            <div className="hidden lg:flex items-center space-x-1">
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => handleNavClick(item)}
+                  disabled={!item.path}
+                  className={`
+                    px-4 xl:px-6 py-2 rounded-full font-medium transition-all duration-300 relative text-sm xl:text-base
+                    ${
+                      activeTab === item.id
+                        ? "text-black font-semibold"
+                        : "text-black"
+                    }
+                    ${
+                      item.path
+                        ? "cursor-pointer group"
+                        : "cursor-default opacity-50"
+                    }
+                  `}
+                >
+                  {item.label}
+                  {/* Underline on hover - only for items with path */}
+                  {item.path && (
+                    <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-black transition-all duration-300 group-hover:w-3/4"></span>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Get Started Button - Desktop */}
+            <button
+              className="hidden lg:block bg-black text-white px-4 xl:px-6 py-2 rounded-full shadow-lg hover:shadow-xl cursor-pointer transition-all duration-300 transform hover:scale-105 text-sm xl:text-base"
+              onClick={() => navigate("/login")}
+            >
+              Get started
+            </button>
+
+            {/* Mobile Menu Button */}
+            <button
+              className="lg:hidden p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+              onClick={toggleMobileMenu}
+              aria-label="Toggle menu"
+            >
+              {isMobileMenuOpen ? (
+                <X className="w-6 h-6 text-black" />
+              ) : (
+                <Menu className="w-6 h-6 text-black" />
+              )}
+            </button>
+          </div>
+
+          {/* Mobile Menu - Dropdown */}
+          <div
+            className={`lg:hidden overflow-hidden transition-all duration-300 ease-in-out ${
+              isMobileMenuOpen ? "max-h-96 mt-4" : "max-h-0"
+            }`}
+          >
+            <div className="py-2 space-y-1">
+              {navItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => handleNavClick(item)}
+                  disabled={!item.path}
+                  className={`
+                    w-full text-left px-4 py-3 rounded-lg font-medium transition-all duration-200
+                    ${
+                      activeTab === item.id
+                        ? "bg-gray-100 text-black font-semibold"
+                        : "text-black hover:bg-gray-50"
+                    }
+                    ${item.path ? "cursor-pointer" : "cursor-default opacity-50"}
+                  `}
+                >
+                  {item.label}
+                </button>
+              ))}
+              
+              {/* Get Started Button - Mobile */}
+              <button
+                className="w-full bg-black text-white px-4 py-3 rounded-lg shadow-lg hover:shadow-xl cursor-pointer transition-all duration-300 font-medium mt-2"
+                onClick={() => {
+                  navigate("/login");
+                  setIsMobileMenuOpen(false);
+                }}
+              >
+                Get started
               </button>
-            ))}
+            </div>
           </div>
         </div>
-
-        {/* Get Started Button */}
-        <button className="bg-black text-white px-6 py-2 rounded-full shadow-lg hover:shadow-xl cursor-pointer transition-all duration-300 transform hover:scale-105">
-          Get started
-        </button>
       </div>
     </nav>
   );
