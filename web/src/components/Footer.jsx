@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Facebook, Linkedin, Twitter, Youtube, Instagram, Mail, Phone, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom'; // ✅ Import Link
+import { Link } from 'react-router-dom';
+import logo from "../assets/common/logo.png"
 
 export default function EVOperatorFooter() {
   const [email, setEmail] = useState('');
@@ -20,7 +21,7 @@ export default function EVOperatorFooter() {
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 md:mb-0">
             Let's Connect there
           </h2>
-          <button className="bg-blue-500 hover:bg-blue-700 text-white px-8 py-3 rounded-lg flex items-center gap-2 transition-colors duration-200">
+          <button className="bg-[#347928] hover:bg-green-800 text-white px-8 py-3 rounded-lg flex items-center gap-2 transition-colors duration-200">
             Connect <ArrowRight size={20} />
           </button>
         </div>
@@ -29,9 +30,9 @@ export default function EVOperatorFooter() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 mb-12">
           {/* Company Info */}
           <div className="lg:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center mb-2">
               <div className="flex items-center justify-center">
-                <h1>logo</h1>
+                <img src={logo} alt="logo" width={80} height={80} />
               </div>
               <h3 className="text-xl font-bold text-gray-900">EVCharge</h3>
             </div>
@@ -39,19 +40,19 @@ export default function EVOperatorFooter() {
               EV Charge specializes in providing comprehensive electric vehicle charging solutions for operators and businesses. We deliver scalable infrastructure, smart management systems, and reliable support to power the future of sustainable transportation.
             </p>
             <div className="flex gap-3">
-              <a href="#" className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white transition-colors duration-200">
+              <a href="#" className="w-10 h-10 bg-[#347928] rounded-full flex items-center justify-center text-white transition-colors duration-200">
                 <Instagram size={20} />
               </a>
-              <a href="#" className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white transition-colors duration-200">
+              <a href="#" className="w-10 h-10 bg-[#347928] rounded-full flex items-center justify-center text-white transition-colors duration-200">
                 <Facebook size={20} />
               </a>
-              <a href="#" className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white transition-colors duration-200">
+              <a href="#" className="w-10 h-10 bg-[#347928] rounded-full flex items-center justify-center text-white transition-colors duration-200">
                 <Linkedin size={20} />
               </a>
-              <a href="#" className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white transition-colors duration-200">
+              <a href="#" className="w-10 h-10 bg-[#347928] rounded-full flex items-center justify-center text-white transition-colors duration-200">
                 <Youtube size={20} />
               </a>
-              <a href="#" className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white transition-colors duration-200">
+              <a href="#" className="w-10 h-10 bg-[#347928] rounded-full flex items-center justify-center text-white transition-colors duration-200">
                 <Twitter size={20} />
               </a>
             </div>
@@ -105,7 +106,7 @@ export default function EVOperatorFooter() {
               />
               <button
                 onClick={handleSubmit}
-                className="bg-blue-600 text-white p-3 rounded-lg transition-colors duration-200"
+                className="bg-[#347928] text-white p-3 rounded-lg transition-colors duration-200"
               >
                 <ArrowRight size={20} />
               </button>
