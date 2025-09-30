@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
+import ev from "../assets/common/EV.png"
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -79,19 +80,25 @@ export default function Navbar() {
         }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="px-4 sm:px-6 py-3 sm:py-4">
+        <div className="bg-[#347928]/15 backdrop-blur-sm rounded-xl shadow-lg px-4 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             {/* Logo */}
             <div className="flex-shrink-0">
-              <h1
-                className="text-black font-bold text-lg sm:text-xl cursor-pointer"
+              <div
+                className="cursor-pointer"
                 onClick={() => {
                   navigate("/");
                   setIsMobileMenuOpen(false);
                 }}
               >
-                Logo
-              </h1>
+                <img
+                  src={ev}
+                  alt="logo"
+                  width={40}
+                  height={40}
+                  className="rounded-full"
+                />
+              </div>
             </div>
 
             {/* Desktop Navigation - Hidden on mobile */}
@@ -126,7 +133,7 @@ export default function Navbar() {
 
             {/* Get Started Button - Desktop */}
             <button
-              className="hidden lg:block bg-black text-white px-4 xl:px-6 py-2 rounded-full shadow-lg hover:shadow-xl cursor-pointer transition-all duration-300 transform hover:scale-105 text-sm xl:text-base"
+              className="hidden lg:block bg-[#347928] text-white px-4 xl:px-6 py-2 rounded-full shadow-lg hover:shadow-xl cursor-pointer hover:bg-green-800 text-sm xl:text-base"
               onClick={() => navigate("/login")}
             >
               Get started
@@ -134,7 +141,7 @@ export default function Navbar() {
 
             {/* Mobile Menu Button */}
             <button
-              className="lg:hidden p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
+              className="lg:hidden p-2 rounded-full hover:bg-white/20 transition-colors duration-200"
               onClick={toggleMobileMenu}
               aria-label="Toggle menu"
             >
@@ -162,8 +169,8 @@ export default function Navbar() {
                     w-full text-left px-4 py-3 rounded-lg font-medium transition-all duration-200
                     ${
                       activeTab === item.id
-                        ? "bg-gray-100 text-black font-semibold"
-                        : "text-black hover:bg-gray-50"
+                        ? "bg-white/30 text-black font-semibold"
+                        : "text-black hover:bg-white/20"
                     }
                     ${item.path ? "cursor-pointer" : "cursor-default opacity-50"}
                   `}
@@ -171,10 +178,10 @@ export default function Navbar() {
                   {item.label}
                 </button>
               ))}
-              
+
               {/* Get Started Button - Mobile */}
               <button
-                className="w-full bg-black text-white px-4 py-3 rounded-lg shadow-lg hover:shadow-xl cursor-pointer transition-all duration-300 font-medium mt-2"
+                className="w-full bg-[#347928] text-white px-4 py-3 rounded-lg shadow-lg hover:shadow-xl cursor-pointer transition-all duration-300 font-medium mt-2"
                 onClick={() => {
                   navigate("/login");
                   setIsMobileMenuOpen(false);
