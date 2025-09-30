@@ -7,10 +7,6 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import RoleRoute from "./components/RoleRoute";
 import OperatorDashboard from "./pages/operator/Dashboard";
 
-
-
-
-
 export default function App() {
   return (
     <Router>
@@ -18,8 +14,22 @@ export default function App() {
         <Route path="/home" element={<Home />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUp />} />
-        <Route path="/admin/dashboard" element={<RoleRoute roles={["Backoffice"]}><Dashboard /></RoleRoute>} />
-        <Route path="/operator/dashboard" element={<RoleRoute roles={["Operator"]}><OperatorDashboard /></RoleRoute>} />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <RoleRoute roles={["Backoffice"]}>
+              <Dashboard />
+            </RoleRoute>
+          }
+        />
+        <Route
+          path="/operator/dashboard"
+          element={
+            <RoleRoute roles={["Operator"]}>
+              <OperatorDashboard />
+            </RoleRoute>
+          }
+        />
       </Routes>
     </Router>
   );
