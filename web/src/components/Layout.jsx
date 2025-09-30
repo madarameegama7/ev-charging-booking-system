@@ -1,3 +1,4 @@
+import EVOperatorFooter from "./Footer";
 import Navbar from "./Navbar";
 
 export default function Layout({ children }) {
@@ -5,6 +6,7 @@ export default function Layout({ children }) {
     <div className="min-h-screen">
       <Navbar />
       <main className="">{children}</main>
+      <EVOperatorFooter />
     </div>
   );
 }
