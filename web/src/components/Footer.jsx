@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Facebook, Linkedin, Twitter, Youtube, Instagram, Mail, Phone, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import logo from "../assets/common/logo.png"
+import logo from "../assets/common/EV.png"
 
 export default function EVOperatorFooter() {
   const [email, setEmail] = useState('');
