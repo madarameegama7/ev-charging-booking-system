@@ -24,12 +24,12 @@ export default function AboutUs() {
               <h2 className="text-3xl md:text-4xl lg:text-4xl font-bold text-slate-900 leading-tight">
                 Empowering EV Operators
               </h2>
-              <p className="text-base md:text-lg text-slate-700 leading-relaxed">
+              <p className="text-base md:text-lg text-slate-700 leading-relaxed text-justify">
                 We believe station operators are at the heart of the EV charging
                 ecosystem. Our platform gives them the tools to manage bookings,
                 track availability, and deliver reliable charging services with
                 ease. By simplifying daily operations, we enable operators to
-                focus on what matters most — powering a cleaner, smarter future
+                focus on what matters most powering a cleaner, smarter future
                 for every EV on the road.
               </p>
             </div>
@@ -37,17 +37,14 @@ export default function AboutUs() {
         </div>
 
         {/* Our Story Section */}
-        <div
-          className="rounded-3xl p-8 md:p-12 lg:p-16 shadow-2xl"
-          style={{ backgroundColor: "#FAF9F3" }}
-        >
+        <div className="rounded-3xl p-8 md:p-12 lg:p-16 shadow-2xl bg-[#347928]">
           <div className="max-w-4xl mx-auto space-y-6">
             <div className="text-center space-y-4">
-              <h2 className="text-4xl md:text-5xl font-bold text-slate-900">
+              <h2 className="text-4xl md:text-5xl font-bold text-white">
                 Our Story
               </h2>
             </div>
-            <div className="space-y-6 text-slate-700 text-lg leading-relaxed">
+            <div className="space-y-6 text-white text-lg leading-relaxed">
               <p>
                 Our journey began with a simple idea — to make electric vehicle
                 charging smarter and more accessible. We built this platform to
@@ -63,15 +60,10 @@ export default function AboutUs() {
         {/* Vision and Mission Section */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Vision */}
-          <div
-            className="rounded-3xl p-8 md:p-10 shadow-2xl text-black"
-            style={{ backgroundColor: "#FAF9F3" }}
-          >
+          <div className="rounded-3xl p-8 md:p-10 shadow-2xl text-black bg-[#347928]/15">
             <div className="space-y-6">
               <div className="flex items-center gap-4">
-                <div className="bg-white/20 p-4 rounded-2xl backdrop-blur-sm">
-                  <Eye className="w-8 h-8" />
-                </div>
+                <Eye className="w-8 h-8 text-[#347928]" />
                 <h3 className="text-3xl md:text-4xl font-bold">Our Vision</h3>
               </div>
 
@@ -84,15 +76,11 @@ export default function AboutUs() {
           </div>
 
           {/* Mission */}
-          <div
-            className="rounded-3xl p-8 md:p-10 shadow-2xl text-black"
-            style={{ backgroundColor: "#FAF9F3" }}
-          >
+          <div className="rounded-3xl p-8 md:p-10 shadow-2xl text-black bg-[#347928]/15">
             <div className="space-y-6">
               <div className="flex items-center gap-4">
-                <div className="bg-white/20 p-4 rounded-2xl backdrop-blur-sm">
-                  <Target className="w-8 h-8" />
-                </div>
+                <Target className="w-8 h-8 text-[#347928]" />
+
                 <h3 className="text-3xl md:text-4xl font-bold">Our Mission</h3>
               </div>
 
