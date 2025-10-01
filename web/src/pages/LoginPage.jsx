@@ -134,7 +134,7 @@ export default function LoginPage() {
             </div>
 
             {/* SignIn button */}
-            <button onClick={onSubmit} className="w-full flex items-center justify-center py-3 bg-blue-400 text-white rounded-lg hover:bg-blue-500 cursor-pointer transition-colors">
+            <button onClick={onSubmit} className="w-full flex items-center justify-center py-3 bg-[#347928] text-white rounded-lg hover:bg-green-800 cursor-pointer transition-colors">
               Sign In
             </button>
 
