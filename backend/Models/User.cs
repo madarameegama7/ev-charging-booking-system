@@ -6,7 +6,7 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace Backend.Models
 {
-	
+
 	// Represents a system user (Backoffice, Operator, or EV Owner). NIC serves as primary identifier
 	public class User
 	{
@@ -22,5 +22,8 @@ namespace Backend.Models
 
 		[BsonElement("isActive")]
 		public bool IsActive { get; set; } = true;
+
+		[BsonElement("passwordHash")]
+		public string PasswordHash { get; set; }
 	}
 }
