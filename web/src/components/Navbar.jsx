@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
-import ev from "../assets/common/EV.png"
+import { Menu, X, LogOut, User as UserIcon } from "lucide-react";
+import ev from "../assets/common/EV.png";
+import { getCurrentUser, logout } from "../api/auth";
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -10,6 +11,8 @@ export default function Navbar() {
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [showUserMenu, setShowUserMenu] = useState(false);
 
   const navItems = [
     { id: "home", label: "Home", path: "/" },
@@ -17,6 +20,12 @@ export default function Navbar() {
     { id: "contact", label: "Contact Us", path: "/contactus" },
     { id: "dashboard", label: "Dashboard", path: null },
   ];
+
+  // Check if user is logged in
+  useEffect(() => {
+    const currentUser = getCurrentUser();
+    setUser(currentUser);
+  }, [location.pathname]);
 
   // Set active tab based on current route
   useEffect(() => {
@@ -34,17 +43,13 @@ export default function Navbar() {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
 
-      // Show navbar when at the very top
       if (currentScrollY === 0) {
         setIsVisible(true);
-      }
-      // Hide navbar when scrolling down
-      else if (currentScrollY > lastScrollY && currentScrollY > 100) {
+      } else if (currentScrollY > lastScrollY && currentScrollY > 100) {
         setIsVisible(false);
-        setIsMobileMenuOpen(false); // Close mobile menu when hiding navbar
-      }
-      // Show navbar when scrolling up
-      else if (currentScrollY < lastScrollY) {
+        setIsMobileMenuOpen(false);
+        setShowUserMenu(false);
+      } else if (currentScrollY < lastScrollY) {
         setIsVisible(true);
       }
 
@@ -62,12 +67,25 @@ export default function Navbar() {
     if (item.path) {
       setActiveTab(item.id);
       navigate(item.path);
-      setIsMobileMenuOpen(false); // Close mobile menu after navigation
+      setIsMobileMenuOpen(false);
     }
   };
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
+    setShowUserMenu(false);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setUser(null);
+    setShowUserMenu(false);
+    navigate("/");
+  };
+
+  const getInitials = () => {
+    if (!user || !user.firstName || !user.lastName) return "";
+    return (user.firstName.charAt(0) + user.lastName.charAt(0)).toUpperCase();
   };
 
   return (
@@ -123,7 +141,6 @@ export default function Navbar() {
                   `}
                 >
                   {item.label}
-                  {/* Underline on hover - only for items with path */}
                   {item.path && (
                     <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-0 h-0.5 bg-black transition-all duration-300 group-hover:w-3/4"></span>
                   )}
@@ -131,13 +148,57 @@ export default function Navbar() {
               ))}
             </div>
 
-            {/* Get Started Button - Desktop */}
-            <button
-              className="hidden lg:block bg-[#347928] text-white px-4 xl:px-6 py-2 rounded-full shadow-lg hover:shadow-xl cursor-pointer hover:bg-green-800 text-sm xl:text-base"
-              onClick={() => navigate("/login")}
-            >
-              Get started
-            </button>
+            {/* User Profile or Get Started Button - Desktop */}
+            <div className="hidden lg:block relative">
+              {user ? (
+                <div>
+                  <button
+                    onClick={() => setShowUserMenu(!showUserMenu)}
+                    className="w-10 h-10 rounded-full bg-[#347928] text-white font-semibold flex items-center justify-center hover:bg-green-800 transition-colors shadow-lg"
+                  >
+                    {getInitials()}
+                  </button>
+                  
+                  {/* Dropdown Menu */}
+                  {showUserMenu && (
+                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl py-2 z-50">
+                      <div className="px-4 py-3 border-b border-gray-200">
+                        <p className="text-sm font-semibold text-gray-800">
+                          {user.firstName} {user.lastName}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {user.role}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setShowUserMenu(false);
+                          navigate(user.role === "Backoffice" ? "/admin/dashboard" : "/operator/dashboard");
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                      >
+                        <UserIcon size={16} />
+                        Dashboard
+                      </button>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
+                      >
+                        <LogOut size={16} />
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <button
+                  className="bg-[#347928] text-white px-4 xl:px-6 py-2 rounded-full shadow-lg hover:shadow-xl cursor-pointer hover:bg-green-800 text-sm xl:text-base"
+                  onClick={() => navigate("/login")}
+                >
+                  Get started
+                </button>
+              )}
+            </div>
 
             {/* Mobile Menu Button */}
             <button
@@ -179,16 +240,46 @@ export default function Navbar() {
                 </button>
               ))}
 
-              {/* Get Started Button - Mobile */}
-              <button
-                className="w-full bg-[#347928] text-white px-4 py-3 rounded-lg shadow-lg hover:shadow-xl cursor-pointer transition-all duration-300 font-medium mt-2"
-                onClick={() => {
-                  navigate("/login");
-                  setIsMobileMenuOpen(false);
-                }}
-              >
-                Get started
-              </button>
+              {/* User Profile or Get Started Button - Mobile */}
+              {user ? (
+                <div className="space-y-2 pt-2 border-t border-white/20">
+                  <div className="px-4 py-2 bg-white/20 rounded-lg">
+                    <p className="text-sm font-semibold text-black">
+                      {user.firstName} {user.lastName}
+                    </p>
+                    <p className="text-xs text-gray-700 mt-1">
+                      {user.role}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      navigate(user.role === "Backoffice" ? "/admin/dashboard" : "/operator/dashboard");
+                    }}
+                    className="w-full text-left px-4 py-3 rounded-lg text-black hover:bg-white/20 flex items-center gap-2"
+                  >
+                    <UserIcon size={16} />
+                    Dashboard
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-3 rounded-lg text-red-600 hover:bg-white/20 flex items-center gap-2"
+                  >
+                    <LogOut size={16} />
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <button
+                  className="w-full bg-[#347928] text-white px-4 py-3 rounded-lg shadow-lg hover:shadow-xl cursor-pointer transition-all duration-300 font-medium mt-2"
+                  onClick={() => {
+                    navigate("/login");
+                    setIsMobileMenuOpen(false);
+                  }}
+                >
+                  Get started
+                </button>
+              )}
             </div>
           </div>
         </div>
