@@ -1,0 +1,29 @@
+package com.example.evchargingapp.api;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+public class BookingApi {
+
+    public static JSONObject createBooking(String stationId, String ownerNic,
+                                           String start, String end, String token) throws Exception {
+        JSONObject body = new JSONObject();
+        body.put("stationId", stationId);
+        body.put("ownerNic", ownerNic);
+        body.put("start", start);
+        body.put("end", end);
+
+        String response = ApiClient.post("booking", body.toString(), token);
+        return new JSONObject(response);
+    }
+
+    public static JSONArray getBookingsByOwner(String nic, String token) throws Exception {
+        String response = ApiClient.get("booking/owner/" + nic, token);
+        return new JSONArray(response);
+    }
+
+    public static JSONObject updateBooking(String id, JSONObject update, String token) throws Exception {
+        String response = ApiClient.put("booking/" + id, update.toString(), token);
+        return new JSONObject(response);
+    }
+}
