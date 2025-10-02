@@ -165,7 +165,21 @@ public class DBHelper extends SQLiteOpenHelper {
         return list;
     }
 
-    public int deleteReservation(String reservationId) {
-        return getWritableDatabase().delete(TABLE_RES, COL_RES_ID + "=?", new String[]{reservationId});
+    public boolean updateReservation(Reservation reservation) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_RES_STATION, reservation.getStationId());
+        values.put(COL_RES_DATETIME, reservation.getDateTime());
+        values.put(COL_RES_STATUS, reservation.getStatus());
+        int result = db.update(TABLE_RES, values, COL_RES_ID + "=?", new String[]{reservation.getReservationId()});
+        return result > 0;
+    }
+
+    public boolean cancelReservation(String reservationId) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COL_RES_STATUS, "Cancelled");
+        int result = db.update(TABLE_RES, values, COL_RES_ID + "=?", new String[]{reservationId});
+        return result > 0;
     }
 }

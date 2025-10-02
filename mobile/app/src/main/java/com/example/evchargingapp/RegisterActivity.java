@@ -7,11 +7,13 @@
 
 package com.example.evchargingapp;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.example.evchargingapp.database.DBHelper;
 
@@ -25,6 +27,13 @@ public class RegisterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
+
+        // Setup App Bar
+        Toolbar toolbar = findViewById(R.id.topAppBar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("Register");
+        }
 
         // Initialize DBHelper
         dbHelper = new DBHelper(this);
@@ -57,6 +66,13 @@ public class RegisterActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(RegisterActivity.this, "User already exists!", Toast.LENGTH_SHORT).show();
             }
+        });
+
+        // Navigate to Login
+        findViewById(R.id.tvGoToLogin).setOnClickListener(v -> {
+            Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish();
         });
     }
 }
