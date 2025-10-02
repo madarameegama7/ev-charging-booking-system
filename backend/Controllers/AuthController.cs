@@ -67,6 +67,8 @@ namespace Backend.Controllers
                     token,
                     role = created.Role,
                     nic = created.NIC,
+                    firstName = request.FirstName, 
+                    lastName = request.LastName,
                     message = "Account created successfully"
                 });
             }
@@ -89,7 +91,13 @@ namespace Backend.Controllers
                 return Unauthorized("Invalid password");
 
             var token = _tokenService.GenerateToken(existing);
-            return Ok(new { token, role = existing.Role, nic = existing.NIC });
+
+            // Split the name into first and last name
+            var nameParts = existing.Name?.Split(' ', 2) ?? new string[] { "", "" };
+            var firstName = nameParts.Length > 0 ? nameParts[0] : "";
+            var lastName = nameParts.Length > 1 ? nameParts[1] : "";
+
+            return Ok(new { token, role = existing.Role, nic = existing.NIC, firstName = firstName, lastName = lastName });
         }
     }
 
