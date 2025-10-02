@@ -17,7 +17,17 @@ namespace Backend.Models
 		[BsonElement("nic")]
 		public string NIC { get; set; }
 
-		[BsonElement("role")]
+        [BsonElement("name")]
+        public string Name { get; set; }  // Add this
+
+        [BsonElement("email")]
+        public string Email { get; set; }  // Add this
+
+        [BsonElement("phone")]
+        public string Phone { get; set; }  // Add this
+
+
+        [BsonElement("role")]
 		public string Role { get; set; }
 
 		[BsonElement("isActive")]

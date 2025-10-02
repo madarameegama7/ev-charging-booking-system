@@ -1,5 +1,4 @@
-// File: AuthController.cs
-// Description: Issues JWT tokens for authenticated users
+using backend.Models;
 using Backend.Models;
 using Backend.Services;
 using Backend.Utils;
@@ -22,13 +21,59 @@ namespace Backend.Controllers
 
         // Register new user
         [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] User user)
+        public async Task<IActionResult> Register([FromBody] RegisterRequest request)
         {
-            var existing = await _userService.GetByNicAsync(user.NIC);
-            if (existing != null) return Conflict("User already exists");
+            // Validate input
+            if (string.IsNullOrWhiteSpace(request.NIC) ||
+                string.IsNullOrWhiteSpace(request.Password) ||
+                string.IsNullOrWhiteSpace(request.Email) ||
+                string.IsNullOrWhiteSpace(request.Role))
+            {
+                return BadRequest("NIC, Email, Password, and Role are required.");
+            }
 
-            var created = await _userService.CreateAsync(user);
-            return Ok(new { message = "User registered successfully", nic = created.NIC });
+            // Validate role is either Backoffice or Operator
+            if (request.Role != "Backoffice" && request.Role != "Operator")
+            {
+                return BadRequest("Role must be either 'Backoffice' or 'Operator'.");
+            }
+
+            // Check if user already exists
+            var existing = await _userService.GetByNicAsync(request.NIC);
+            if (existing != null)
+                return Conflict("A user with this NIC already exists.");
+
+            // Create new user with selected role
+            var newUser = new User
+            {
+                NIC = request.NIC,
+                Name = $"{request.FirstName} {request.LastName}",
+                Email = request.Email,
+                Phone = request.Phone ?? "",
+                Role = request.Role, // Use role from request
+                IsActive = true,
+                PasswordHash = PasswordHelper.HashPassword(request.Password)
+            };
+
+            try
+            {
+                var created = await _userService.CreateAsync(newUser);
+
+                // Generate token
+                var token = _tokenService.GenerateToken(created);
+
+                return Ok(new
+                {
+                    token,
+                    role = created.Role,
+                    nic = created.NIC,
+                    message = "Account created successfully"
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"An error occurred during registration: {ex.Message}");
+            }
         }
 
         // Login with NIC + Password
@@ -36,7 +81,8 @@ namespace Backend.Controllers
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             var existing = await _userService.GetByNicAsync(request.NIC);
-            if (existing is null || !existing.IsActive) return Unauthorized("Invalid NIC or inactive account");
+            if (existing is null || !existing.IsActive)
+                return Unauthorized("Invalid NIC or inactive account");
 
             // Verify password
             if (!PasswordHelper.VerifyPassword(request.Password, existing.PasswordHash))
@@ -47,7 +93,6 @@ namespace Backend.Controllers
         }
     }
 
-    // DTO for login
     public class LoginRequest
     {
         public string NIC { get; set; }
