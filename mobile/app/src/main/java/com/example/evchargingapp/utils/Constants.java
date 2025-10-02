@@ -10,8 +10,10 @@ public class Constants {
     public static final String BOOKING_ENDPOINT = BASE_URL + "booking";
     public static final String STATION_ENDPOINT = BASE_URL + "station";
 
-    // SharedPreferences keys (optional)
+    // SharedPreferences keys
     public static final String PREFS_NAME = "EVChargingPrefs";
     public static final String PREFS_KEY_JWT = "jwt_token";
     public static final String PREFS_KEY_NIC = "owner_nic";
+    public static final String PREFS_KEY_ROLE = "user_role";
+
 }

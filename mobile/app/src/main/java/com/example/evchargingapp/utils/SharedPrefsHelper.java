@@ -3,31 +3,46 @@ package com.example.evchargingapp.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-public class SharedPrefsHelper {
+public class SharedPrefHelper {
 
-    private SharedPreferences sharedPreferences;
+    private static final String PREFS_NAME = Constants.PREFS_NAME;
 
-    public SharedPrefsHelper(Context context) {
-        sharedPreferences = context.getSharedPreferences(Constants.PREFS_NAME, Context.MODE_PRIVATE);
+    // Save JWT token
+    public static void saveToken(Context context, String token) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putString(Constants.PREFS_KEY_JWT, token).apply();
     }
 
-    public void saveToken(String token) {
-        sharedPreferences.edit().putString(Constants.PREFS_KEY_JWT, token).apply();
+    public static String getToken(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getString(Constants.PREFS_KEY_JWT, null);
     }
 
-    public String getToken() {
-        return sharedPreferences.getString(Constants.PREFS_KEY_JWT, null);
+    // Save Owner NIC
+    public static void saveNic(Context context, String nic) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putString(Constants.PREFS_KEY_NIC, nic).apply();
     }
 
-    public void saveNic(String nic) {
-        sharedPreferences.edit().putString(Constants.PREFS_KEY_NIC, nic).apply();
+    public static String getNic(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getString(Constants.PREFS_KEY_NIC, null);
     }
 
-    public String getNic() {
-        return sharedPreferences.getString(Constants.PREFS_KEY_NIC, null);
+    // Save Role
+    public static void saveRole(Context context, String role) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putString(Constants.PREFS_KEY_ROLE, role).apply();
     }
 
-    public void clear() {
-        sharedPreferences.edit().clear().apply();
+    public static String getRole(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getString(Constants.PREFS_KEY_ROLE, null);
+    }
+
+    // Clear all data (logout)
+    public static void clear(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().clear().apply();
     }
 }
