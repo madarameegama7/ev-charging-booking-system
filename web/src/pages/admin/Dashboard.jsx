@@ -23,6 +23,13 @@ export default function AdminDashboard() {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    localStorage.removeItem('nic');
+    window.location.href = '/login';
+  };
+
   const sidebarItems = [
     { id: "users", label: "Users Overview", icon: Users },
     { id: "stations", label: "Stations Overview", icon: MapPin },
@@ -149,6 +156,7 @@ export default function AdminDashboard() {
                   3
                 </span>
               </div>
+              <button onClick={handleLogout} className="px-3 py-2 bg-gray-800 text-white rounded-md hover:bg-black cursor-pointer">Logout</button>
               <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
                 <span className="text-white font-bold">A</span>
               </div>
