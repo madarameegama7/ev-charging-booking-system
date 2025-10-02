@@ -1,0 +1,17 @@
+package com.example.evchargingapp.utils;
+
+public class Constants {
+    // Base URL of your backend service
+    public static final String BASE_URL = "https://your-backend-domain.com/api/";
+
+    // API endpoints
+    public static final String LOGIN_ENDPOINT = BASE_URL + "auth/login";
+    public static final String EVOwner_ENDPOINT = BASE_URL + "user";
+    public static final String BOOKING_ENDPOINT = BASE_URL + "booking";
+    public static final String STATION_ENDPOINT = BASE_URL + "station";
+
+    // SharedPreferences keys (optional)
+    public static final String PREFS_NAME = "EVChargingPrefs";
+    public static final String PREFS_KEY_JWT = "jwt_token";
+    public static final String PREFS_KEY_NIC = "owner_nic";
+}
