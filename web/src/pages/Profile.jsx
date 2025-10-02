@@ -1,230 +1,284 @@
-import React, { useState } from "react";
-import { User, Mail, Lock, Edit, CreditCard } from "lucide-react";
+import { useEffect, useState } from "react";
+import { User, Mail, Lock, Edit, Phone as PhoneIcon, IdCard } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { API_BASE } from "../config";
 
 export default function Profile() {
+  const [loading, setLoading] = useState(true);
+  const [updating, setUpdating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [profile, setProfile] = useState({
-    name: "Alex Johnson",
-    nic: "200050704365",
-    email: "alex.johnson@email.com",
-    currentPassword: "",
+  const [user, setUser] = useState(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
     newPassword: "",
   });
+  
+  const navigate = useNavigate();
+  const token = localStorage.getItem("token");
+  const nic = localStorage.getItem("nic");
 
-  const [tempProfile, setTempProfile] = useState(profile);
-
-  const getInitials = () => {
-    if (!profile.name) return "U";
-    const names = profile.name.trim().split(" ");
-    if (names.length === 1) {
-      return names[0].substring(0, 2).toUpperCase();
+  const fetchUser = async () => {
+    if (!token || !nic) {
+      navigate("/login");
+      return;
     }
+
+    try {
+      const response = await fetch(`${API_BASE}/api/User/${nic}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.clear();
+          navigate("/login");
+          return;
+        }
+        throw new Error("Failed to fetch user data");
+      }
+
+      const userData = await response.json();
+      setUser(userData);
+      setFormData({
+        name: userData.name || "",
+        email: userData.email || "",
+        phone: userData.phone || "",
+        newPassword: "",
+      });
+      setLoading(false);
+    } catch (error) {
+      alert("Failed to fetch user data");
+      console.error(error);
+      setLoading(false);
+    }
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    
+    try {
+      setUpdating(true);
+      
+      const updateData = {
+        NIC: nic,
+        Name: formData.name,
+        Email: formData.email,
+        Phone: formData.phone,
+        Role: user.role,
+        IsActive: user.isActive,
+        PasswordHash: user.passwordHash, // Keep existing password hash
+      };
+
+      // If new password provided, hash it on backend
+      if (formData.newPassword) {
+        // We'll need to add password update logic to backend
+        // For now, keep the existing hash
+        alert("Password change feature coming soon");
+        setUpdating(false);
+        return;
+      }
+
+      const response = await fetch(`${API_BASE}/api/User/${nic}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(updateData),
+      });
+
+      if (!response.ok) {
+        throw new Error("Update failed");
+      }
+
+      const updatedUser = await response.json();
+      setUser(updatedUser);
+      setIsEditing(false);
+      alert("Profile updated successfully");
+      
+      setFormData({
+        ...formData,
+        newPassword: "",
+      });
+    } catch (error) {
+      alert("Update failed. Please try again.");
+      console.error(error);
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  useEffect(() => {
+    fetchUser();
+  }, []);
+
+  if (loading) {
     return (
-      names[0].charAt(0) + names[names.length - 1].charAt(0)
-    ).toUpperCase();
-  };
-
-  const handleEditClick = () => {
-    setTempProfile(profile);
-    setIsEditing(true);
-  };
-
-  const handleCancelEdit = () => {
-    setTempProfile(profile);
-    setIsEditing(false);
-  };
-
-  const handleChange = (field, value) => {
-    setTempProfile({ ...tempProfile, [field]: value });
-  };
-
-  const handleUpdate = () => {
-    // Here you would make your API call to update the profile
-    setProfile(tempProfile);
-    setIsEditing(false);
-    alert("Profile updated successfully");
-  };
-
-  if (isEditing) {
-    // Edit/Update Page
-    return (
-      <div className="max-w-4xl mx-auto my-10 mt-26 px-4 relative">
-        {/* Background decoration */}
-        <div className="absolute -z-10 left-10 top-10 w-32 h-32 bg-emerald-100 rounded-full blur-3xl opacity-40"></div>
-        <div className="absolute -z-10 right-10 bottom-10 w-40 h-40 bg-teal-100 rounded-full blur-3xl opacity-40"></div>
-
-        <div className="bg-white border border-gray-200 rounded-2xl shadow-lg overflow-hidden py-10 px-6">
-          {/* Header */}
-          <div className="flex items-center gap-2 mb-6">
-            <Edit size={20} className="text-teal-600" />
-            <h2 className="text-2xl font-semibold text-black">
-              Update Profile
-            </h2>
-          </div>
-
-          <div className="space-y-6">
-            {/* Name Field */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <label className="flex items-center gap-2 text-black font-medium mb-3">
-                <User size={18} className="text-gray-600" />
-                Name *
-              </label>
-              <input
-                type="text"
-                value={tempProfile.name}
-                onChange={(e) => handleChange("name", e.target.value)}
-                required
-                className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 hover:border-gray-400 focus:border-teal-500 focus:outline-none transition-all bg-white"
-                placeholder="Enter your name"
-              />
-            </div>
-
-            {/* NIC Field (Read-only) */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <label className="flex items-center gap-2 text-black font-medium mb-3">
-                <CreditCard size={18} className="text-gray-600" />
-                NIC
-              </label>
-              <input
-                type="text"
-                value={tempProfile.nic}
-                disabled
-                className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 bg-gray-100 text-gray-500 cursor-not-allowed"
-              />
-            </div>
-
-            {/* Email Field */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <label className="flex items-center gap-2 text-black font-medium mb-3">
-                <Mail size={18} className="text-gray-600" />
-                Email *
-              </label>
-              <input
-                type="email"
-                value={tempProfile.email}
-                onChange={(e) => handleChange("email", e.target.value)}
-                required
-                className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 hover:border-gray-400 focus:border-teal-500 focus:outline-none transition-all bg-white"
-                placeholder="Enter your email"
-              />
-            </div>
-
-            {/* Current Password Field */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <label className="flex items-center gap-2 text-black font-medium mb-3">
-                <Lock size={18} className="text-gray-600" />
-                Current Password
-              </label>
-              <input
-                type="password"
-                value={tempProfile.currentPassword}
-                onChange={(e) =>
-                  handleChange("currentPassword", e.target.value)
-                }
-                className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 hover:border-gray-400 focus:border-teal-500 focus:outline-none transition-all bg-white"
-                placeholder="Enter current password"
-              />
-            </div>
-
-            {/* New Password Field */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <label className="flex items-center gap-2 text-black font-medium mb-3">
-                <Lock size={18} className="text-gray-600" />
-                New Password
-              </label>
-              <input
-                type="password"
-                value={tempProfile.newPassword}
-                onChange={(e) => handleChange("newPassword", e.target.value)}
-                className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 hover:border-gray-400 focus:border-teal-500 focus:outline-none transition-all bg-white"
-                placeholder="Enter new password"
-              />
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-4 justify-center pt-4">
-              <button
-                onClick={handleUpdate}
-                className="bg-[#347928] text-white hover:bg-[#347928]/80 px-8 py-3 rounded-lg shadow-md transition-all duration-300 font-medium"
-              >
-                Update Profile
-              </button>
-              <button
-                onClick={handleCancelEdit}
-                className="bg-gray-500 text-white hover:bg-gray-600 px-8 py-3 rounded-lg shadow-md transition-all duration-300 font-medium"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl text-gray-600">Loading...</div>
       </div>
     );
   }
 
-  // View Profile Page
-  return (
-    <div className="max-w-4xl mx-auto my-10 mt-26 px-4 relative">
-      {/* Background decoration */}
-      <div className="absolute -z-10 left-10 top-10 w-32 h-32 bg-emerald-100 rounded-full blur-3xl opacity-40"></div>
-      <div className="absolute -z-10 right-10 bottom-10 w-40 h-40 bg-teal-100 rounded-full blur-3xl opacity-40"></div>
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-xl text-gray-600">User not found</div>
+      </div>
+    );
+  }
 
-      <div className="bg-white border border-gray-200 rounded-2xl shadow-lg overflow-hidden py-10 px-6">
-        {/* Profile Avatar with Edit Icon */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="relative">
-            <div className="w-32 h-32 rounded-full bg-emerald-100 flex items-center justify-center text-4xl font-bold text-black shadow-md">
-              {getInitials()}
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 py-12 px-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Profile Header Card */}
+        <div className="bg-white rounded-3xl shadow-xl overflow-hidden mb-8">
+          <div className="bg-gradient-to-r from-[#347928] to-emerald-600 h-32"></div>
+          <div className="px-8 pb-8">
+            <div className="flex flex-col items-center -mt-16">
+              <div className="w-32 h-32 rounded-full bg-white shadow-lg flex items-center justify-center text-5xl font-bold text-[#347928] border-4 border-white">
+                {user.name?.charAt(0).toUpperCase() || "U"}
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900 mt-4">{user.name || "User"}</h1>
+              <span className="px-4 py-1 bg-[#347928]/10 text-[#347928] rounded-full text-sm font-semibold mt-2">
+                {user.role}
+              </span>
             </div>
-            <button
-              onClick={handleEditClick}
-              className="absolute bottom-0 right-0 w-10 h-10 flex items-center justify-center transition-all cursor-pointer"
-            >
-              <Edit size={18} className="text-black" />
-            </button>
           </div>
         </div>
 
-        {/* User Information */}
-        <div className="space-y-4 max-w-md mx-auto">
-          {/* Name */}
-          <div className="bg-gray-50 rounded-lg p-4">
+        {/* Profile Details Card */}
+        <div className="bg-white rounded-3xl shadow-xl p-8">
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <User size={20} className="text-gray-600" />
-              <div>
-                <p className="text-xs text-gray-500 font-medium">Name</p>
-                <p className="text-base text-black font-semibold">
-                  {profile.name}
-                </p>
+              <div className="w-10 h-10 bg-[#347928]/10 rounded-xl flex items-center justify-center">
+                <Edit size={20} className="text-[#347928]" />
               </div>
+              <h2 className="text-2xl font-bold text-gray-900">Profile Information</h2>
             </div>
+            {!isEditing && (
+              <button
+                onClick={() => setIsEditing(true)}
+                className="px-4 py-2 bg-[#347928] text-white rounded-lg hover:bg-[#347928]/90 transition-colors cursor-pointer"
+              >
+                Edit Profile
+              </button>
+            )}
           </div>
 
-          {/* NIC */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <div className="flex items-center gap-3">
-              <CreditCard size={20} className="text-gray-600" />
-              <div>
-                <p className="text-xs text-gray-500 font-medium">NIC</p>
-                <p className="text-base text-black font-semibold">
-                  {profile.nic}
-                </p>
+          <form onSubmit={handleUpdate} className="space-y-6">
+            {/* NIC (Read-only) */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                NIC
+              </label>
+              <div className="flex items-center border border-gray-300 rounded-lg px-4 py-3 bg-gray-50">
+                <IdCard size={18} className="text-gray-400 mr-3" />
+                <input
+                  type="text"
+                  value={user.nic}
+                  disabled
+                  className="w-full bg-transparent focus:outline-none text-gray-600"
+                />
               </div>
             </div>
-          </div>
 
-          {/* Email */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <div className="flex items-center gap-3">
-              <Mail size={20} className="text-gray-600" />
-              <div>
-                <p className="text-xs text-gray-500 font-medium">Email</p>
-                <p className="text-base text-black font-semibold">
-                  {profile.email}
-                </p>
+            {/* Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Full Name *
+              </label>
+              <div className={`flex items-center border rounded-lg px-4 py-3 ${isEditing ? 'border-gray-300 hover:border-gray-400' : 'border-gray-300 bg-gray-50'}`}>
+                <User size={18} className="text-gray-400 mr-3" />
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  required
+                  className="w-full focus:outline-none bg-transparent"
+                />
               </div>
             </div>
-          </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email Address *
+              </label>
+              <div className={`flex items-center border rounded-lg px-4 py-3 ${isEditing ? 'border-gray-300 hover:border-gray-400' : 'border-gray-300 bg-gray-50'}`}>
+                <Mail size={18} className="text-gray-400 mr-3" />
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  required
+                  className="w-full focus:outline-none bg-transparent"
+                />
+              </div>
+            </div>
+
+            {/* Phone */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Phone Number
+              </label>
+              <div className={`flex items-center border rounded-lg px-4 py-3 ${isEditing ? 'border-gray-300 hover:border-gray-400' : 'border-gray-300 bg-gray-50'}`}>
+                <PhoneIcon size={18} className="text-gray-400 mr-3" />
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  disabled={!isEditing}
+                  placeholder="+94 77 123 4567"
+                  className="w-full focus:outline-none bg-transparent"
+                />
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            {isEditing && (
+              <div className="flex gap-4 pt-6">
+                <button
+                  type="submit"
+                  disabled={updating}
+                  className="flex-1 bg-[#347928] text-white py-3 rounded-lg font-semibold hover:bg-[#347928]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                >
+                  {updating ? "Updating..." : "Save Changes"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEditing(false);
+                    setFormData({
+                      name: user.name || "",
+                      email: user.email || "",
+                      phone: user.phone || "",
+                      newPassword: "",
+                    });
+                  }}
+                  className="flex-1 bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+          </form>
         </div>
       </div>
     </div>
