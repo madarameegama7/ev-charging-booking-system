@@ -18,7 +18,6 @@ export default function Navbar() {
     { id: "home", label: "Home", path: "/" },
     { id: "about", label: "About Us", path: "/aboutus" },
     { id: "contact", label: "Contact Us", path: "/contactus" },
-    { id: "dashboard", label: "Dashboard", path: null },
   ];
 
   // Check if user is logged in
@@ -154,11 +153,11 @@ export default function Navbar() {
                 <div>
                   <button
                     onClick={() => setShowUserMenu(!showUserMenu)}
-                    className="w-10 h-10 rounded-full bg-[#347928] text-white font-semibold flex items-center justify-center hover:bg-green-800 transition-colors shadow-lg"
+                    className="w-10 h-10 rounded-full bg-[#347928] text-white font-semibold flex items-center justify-center hover:bg-green-800 transition-colors shadow-lg cursor-pointer"
                   >
                     {getInitials()}
                   </button>
-                  
+
                   {/* Dropdown Menu */}
                   {showUserMenu && (
                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl py-2 z-50">
@@ -173,16 +172,30 @@ export default function Navbar() {
                       <button
                         onClick={() => {
                           setShowUserMenu(false);
-                          navigate(user.role === "Backoffice" ? "/admin/dashboard" : "/operator/dashboard");
+                          navigate("/profile");
                         }}
-                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 cursor-pointer"
+                      >
+                        <UserIcon size={16} />
+                        Profile
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowUserMenu(false);
+                          navigate(
+                            user.role === "Backoffice"
+                              ? "/admin/dashboard"
+                              : "/operator/dashboard"
+                          );
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2 cursor-pointer"
                       >
                         <UserIcon size={16} />
                         Dashboard
                       </button>
                       <button
                         onClick={handleLogout}
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2"
+                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 flex items-center gap-2 cursor-pointer"
                       >
                         <LogOut size={16} />
                         Logout
@@ -233,7 +246,9 @@ export default function Navbar() {
                         ? "bg-white/30 text-black font-semibold"
                         : "text-black hover:bg-white/20"
                     }
-                    ${item.path ? "cursor-pointer" : "cursor-default opacity-50"}
+                    ${
+                      item.path ? "cursor-pointer" : "cursor-default opacity-50"
+                    }
                   `}
                 >
                   {item.label}
@@ -247,14 +262,26 @@ export default function Navbar() {
                     <p className="text-sm font-semibold text-black">
                       {user.firstName} {user.lastName}
                     </p>
-                    <p className="text-xs text-gray-700 mt-1">
-                      {user.role}
-                    </p>
+                    <p className="text-xs text-gray-700 mt-1">{user.role}</p>
                   </div>
                   <button
                     onClick={() => {
                       setIsMobileMenuOpen(false);
-                      navigate(user.role === "Backoffice" ? "/admin/dashboard" : "/operator/dashboard");
+                      navigate("/profile");
+                    }}
+                    className="w-full text-left px-4 py-3 rounded-lg text-black hover:bg-white/20 flex items-center gap-2"
+                  >
+                    <UserIcon size={16} />
+                    Profile
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      navigate(
+                        user.role === "Backoffice"
+                          ? "/admin/dashboard"
+                          : "/operator/dashboard"
+                      );
                     }}
                     className="w-full text-left px-4 py-3 rounded-lg text-black hover:bg-white/20 flex items-center gap-2"
                   >
