@@ -14,6 +14,7 @@ import OperatorDashboard from "./pages/operator/Dashboard";
 import Layout from "./components/Layout";
 import AboutUs from "./components/AboutUs";
 import ContactUs from "./components/ContactUS";
+import Profile from "./pages/Profile";
 
 export default function App() {
   return (
@@ -45,6 +46,8 @@ export default function App() {
             </Layout>
           }
         />
+
+        <Route path="/profile" element={<Profile />} />
 
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUp />} />
