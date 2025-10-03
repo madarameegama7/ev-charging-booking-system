@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { User, Mail, Lock, Edit, Phone as PhoneIcon, IdCard } from "lucide-react";
+import { User, Mail, Phone as PhoneIcon, IdCard, Edit } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { API_BASE } from "../config";
 
@@ -12,7 +12,6 @@ export default function Profile() {
     name: "",
     email: "",
     phone: "",
-    newPassword: "",
   });
   
   const navigate = useNavigate();
@@ -47,7 +46,6 @@ export default function Profile() {
         name: userData.name || "",
         email: userData.email || "",
         phone: userData.phone || "",
-        newPassword: "",
       });
       setLoading(false);
     } catch (error) {
@@ -70,17 +68,8 @@ export default function Profile() {
         Phone: formData.phone,
         Role: user.role,
         IsActive: user.isActive,
-        PasswordHash: user.passwordHash, // Keep existing password hash
+        PasswordHash: user.passwordHash,
       };
-
-      // If new password provided, hash it on backend
-      if (formData.newPassword) {
-        // We'll need to add password update logic to backend
-        // For now, keep the existing hash
-        alert("Password change feature coming soon");
-        setUpdating(false);
-        return;
-      }
 
       const response = await fetch(`${API_BASE}/api/User/${nic}`, {
         method: "PUT",
@@ -99,11 +88,6 @@ export default function Profile() {
       setUser(updatedUser);
       setIsEditing(false);
       alert("Profile updated successfully");
-      
-      setFormData({
-        ...formData,
-        newPassword: "",
-      });
     } catch (error) {
       alert("Update failed. Please try again.");
       console.error(error);
@@ -125,7 +109,7 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-full flex items-center justify-center py-12">
         <div className="text-xl text-gray-600">Loading...</div>
       </div>
     );
@@ -133,14 +117,14 @@ export default function Profile() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-full flex items-center justify-center py-12">
         <div className="text-xl text-gray-600">User not found</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 py-12 px-4">
+    <div className="py-6 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto">
         {/* Profile Header Card */}
         <div className="bg-white rounded-3xl shadow-xl overflow-hidden mb-8">
@@ -178,102 +162,49 @@ export default function Profile() {
           </div>
 
           <form onSubmit={handleUpdate} className="space-y-6">
-            {/* NIC (Read-only) */}
+            {/* NIC */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                NIC
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">NIC</label>
               <div className="flex items-center border border-gray-300 rounded-lg px-4 py-3 bg-gray-50">
                 <IdCard size={18} className="text-gray-400 mr-3" />
-                <input
-                  type="text"
-                  value={user.nic}
-                  disabled
-                  className="w-full bg-transparent focus:outline-none text-gray-600"
-                />
+                <input type="text" value={user.nic} disabled className="w-full bg-transparent focus:outline-none text-gray-600" />
               </div>
             </div>
 
             {/* Name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Full Name *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
               <div className={`flex items-center border rounded-lg px-4 py-3 ${isEditing ? 'border-gray-300 hover:border-gray-400' : 'border-gray-300 bg-gray-50'}`}>
                 <User size={18} className="text-gray-400 mr-3" />
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  required
-                  className="w-full focus:outline-none bg-transparent"
-                />
+                <input type="text" name="name" value={formData.name} onChange={handleChange} disabled={!isEditing} required className="w-full focus:outline-none bg-transparent" />
               </div>
             </div>
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address *
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
               <div className={`flex items-center border rounded-lg px-4 py-3 ${isEditing ? 'border-gray-300 hover:border-gray-400' : 'border-gray-300 bg-gray-50'}`}>
                 <Mail size={18} className="text-gray-400 mr-3" />
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  required
-                  className="w-full focus:outline-none bg-transparent"
-                />
+                <input type="email" name="email" value={formData.email} onChange={handleChange} disabled={!isEditing} required className="w-full focus:outline-none bg-transparent" />
               </div>
             </div>
 
             {/* Phone */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Phone Number
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
               <div className={`flex items-center border rounded-lg px-4 py-3 ${isEditing ? 'border-gray-300 hover:border-gray-400' : 'border-gray-300 bg-gray-50'}`}>
                 <PhoneIcon size={18} className="text-gray-400 mr-3" />
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  disabled={!isEditing}
-                  placeholder="+94 77 123 4567"
-                  className="w-full focus:outline-none bg-transparent"
-                />
+                <input type="tel" name="phone" value={formData.phone} onChange={handleChange} disabled={!isEditing} placeholder="+94 77 123 4567" className="w-full focus:outline-none bg-transparent" />
               </div>
             </div>
 
             {/* Action Buttons */}
             {isEditing && (
               <div className="flex gap-4 pt-6">
-                <button
-                  type="submit"
-                  disabled={updating}
-                  className="flex-1 bg-[#347928] text-white py-3 rounded-lg font-semibold hover:bg-[#347928]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                >
+                <button type="submit" disabled={updating} className="flex-1 bg-[#347928] text-white py-3 rounded-lg font-semibold hover:bg-[#347928]/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
                   {updating ? "Updating..." : "Save Changes"}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsEditing(false);
-                    setFormData({
-                      name: user.name || "",
-                      email: user.email || "",
-                      phone: user.phone || "",
-                      newPassword: "",
-                    });
-                  }}
-                  className="flex-1 bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors cursor-pointer"
-                >
+                <button type="button" onClick={() => { setIsEditing(false); setFormData({ name: user.name || "", email: user.email || "", phone: user.phone || "" }); }} className="flex-1 bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors cursor-pointer">
                   Cancel
                 </button>
               </div>
