@@ -2,26 +2,41 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@android:color/white">
 
+    <!-- Add Booking Button -->
     <Button
         android:id="@+id/btnAddBooking"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Add Reservation" />
+        android:text="Add Reservation"
+        android:backgroundTint="@color/purple_500"
+        android:textColor="@android:color/white"
+        android:textAllCaps="false"
+        android:padding="12dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginBottom="16dp"
+        android:elevation="4dp" />
 
-    <ListView
-        android:id="@+id/lvBookings"
+    <!-- List of Bookings -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvBookings"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_below="@id/btnAddBooking"
-        android:layout_marginTop="16dp" />
+        android:layout_marginTop="12dp"
+        android:clipToPadding="false"
+        android:paddingBottom="16dp"
+        android:scrollbars="vertical" />
 
+    <!-- Progress Bar -->
     <ProgressBar
         android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyle"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
         android:layout_centerInParent="true"
         android:visibility="gone" />
+
 </RelativeLayout>

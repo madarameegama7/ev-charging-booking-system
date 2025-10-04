@@ -29,6 +29,12 @@ public class BookingApi {
         return new JSONArray(response);
     }
 
+    public static JSONArray getBookingsByStation(String stationId, String token) throws Exception {
+        // method operator to fetch bookings for their station
+        String response = ApiClient.get("booking/station/" + stationId, token).get();
+        return new JSONArray(response);
+    }
+
     public static JSONObject updateBooking(String id, JSONObject update, String token) throws Exception {
         String response = ApiClient.put("booking/" + id, update.toString(), token);
         return new JSONObject(response);

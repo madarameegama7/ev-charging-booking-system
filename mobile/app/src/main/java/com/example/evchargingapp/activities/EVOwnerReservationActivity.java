@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 import com.example.evchargingapp.R;
 import com.example.evchargingapp.api.BookingApi;
@@ -49,36 +50,24 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
 
         lvBookings.setOnItemClickListener((parent, view, position, id) -> {
             Booking selected = bookingList.get(position);
-            cancelBooking(selected);
+            showCancelConfirmation(selected);
         });
 
         fetchBookings();
     }
 
     private void showBookingForm() {
-        // Simple form using a dialog
         View formView = getLayoutInflater().inflate(R.layout.dialog_add_booking, null);
         etStationId = formView.findViewById(R.id.etStationId);
         etStartTime = formView.findViewById(R.id.etStartTime);
         etEndTime = formView.findViewById(R.id.etEndTime);
         btnSubmitBooking = formView.findViewById(R.id.btnSubmitBooking);
 
-        DatePickerDialog.OnDateSetListener dateListener = (view, year, month, dayOfMonth) -> {
-            Calendar cal = Calendar.getInstance();
-            cal.set(year, month, dayOfMonth);
-            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-            if (etStartTime.hasFocus()) etStartTime.setText(sdf.format(cal.getTime()));
-            else etEndTime.setText(sdf.format(cal.getTime()));
-        };
+        Calendar calendar = Calendar.getInstance();
 
-        etStartTime.setOnClickListener(v -> {
-            Calendar c = Calendar.getInstance();
-            new DatePickerDialog(this, dateListener, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
-        });
-        etEndTime.setOnClickListener(v -> {
-            Calendar c = Calendar.getInstance();
-            new DatePickerDialog(this, dateListener, c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH)).show();
-        });
+        // Date + Time picker
+        etStartTime.setOnClickListener(v -> pickDateTime(etStartTime));
+        etEndTime.setOnClickListener(v -> pickDateTime(etEndTime));
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setView(formView);
@@ -98,6 +87,21 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
             dialog.dismiss();
             createBooking(stationId, start, end);
         });
+    }
+
+    private void pickDateTime(EditText target) {
+        Calendar calendar = Calendar.getInstance();
+        DatePickerDialog dpd = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
+            calendar.set(year, month, dayOfMonth);
+            TimePickerDialog tpd = new TimePickerDialog(this, (timeView, hourOfDay, minute) -> {
+                calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
+                calendar.set(Calendar.MINUTE, minute);
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+                target.setText(sdf.format(calendar.getTime()));
+            }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true);
+            tpd.show();
+        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+        dpd.show();
     }
 
     private void createBooking(String stationId, String start, String end) {
@@ -167,6 +171,33 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
         adapter.clear();
         adapter.addAll(display);
         adapter.notifyDataSetChanged();
+
+        // Color-code by status
+        for (int i = 0; i < lvBookings.getChildCount(); i++) {
+            View item = lvBookings.getChildAt(i);
+            Booking b = bookingList.get(i);
+            int color;
+            switch (b.getStatus()) {
+                case "Approved":
+                    color = ContextCompat.getColor(this, android.R.color.holo_green_light);
+                    break;
+                case "Cancelled":
+                    color = ContextCompat.getColor(this, android.R.color.holo_red_light);
+                    break;
+                default:
+                    color = ContextCompat.getColor(this, android.R.color.holo_orange_light);
+            }
+            item.setBackgroundColor(color);
+        }
+    }
+
+    private void showCancelConfirmation(Booking booking) {
+        new AlertDialog.Builder(this)
+                .setTitle("Cancel Booking")
+                .setMessage("Are you sure you want to cancel this booking?")
+                .setPositiveButton("Yes", (dialog, which) -> cancelBooking(booking))
+                .setNegativeButton("No", null)
+                .show();
     }
 
     private void cancelBooking(Booking booking) {
