@@ -20,8 +20,7 @@ namespace Backend.Services
 
         public async Task<User> CreateAsync(User user)
         {
-            //hash password before storing
-            user.PasswordHash = PasswordHelper.HashPassword(user.PasswordHash);
+            // PasswordHash should already be hashed by the controller
             user.IsActive = true;
             return await _repo.CreateAsync(user);
         }
