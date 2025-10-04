@@ -1,29 +1,33 @@
+/*
+ * File: Booking.java
+ * Purpose: Represents a reservation made by an EV Owner
+ */
+
 package com.example.evchargingapp.models;
 
 public class Booking {
-    private String id;
+
+    private String bookingId;
     private String stationId;
     private String ownerNic;
     private String startTimeUtc;
     private String endTimeUtc;
-    private String status;
-    private String createdAtUtc;
+    private String status; // Pending, Approved, Cancelled, Completed
 
     public Booking() {}
 
-    public Booking(String id, String stationId, String ownerNic, String startTimeUtc,
-                   String endTimeUtc, String status, String createdAtUtc) {
-        this.id = id;
+    public Booking(String bookingId, String stationId, String ownerNic, String startTimeUtc, String endTimeUtc, String status) {
+        this.bookingId = bookingId;
         this.stationId = stationId;
         this.ownerNic = ownerNic;
         this.startTimeUtc = startTimeUtc;
         this.endTimeUtc = endTimeUtc;
         this.status = status;
-        this.createdAtUtc = createdAtUtc;
     }
 
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    // Getters and Setters
+    public String getBookingId() { return bookingId; }
+    public void setBookingId(String bookingId) { this.bookingId = bookingId; }
 
     public String getStationId() { return stationId; }
     public void setStationId(String stationId) { this.stationId = stationId; }
@@ -39,7 +43,4 @@ public class Booking {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
-
-    public String getCreatedAtUtc() { return createdAtUtc; }
-    public void setCreatedAtUtc(String createdAtUtc) { this.createdAtUtc = createdAtUtc; }
 }

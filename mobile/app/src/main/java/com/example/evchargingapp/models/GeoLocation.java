@@ -1,6 +1,12 @@
+/*
+ * File: GeoLocation.java
+ * Purpose: Model representing geographic coordinates of a station
+ */
+
 package com.example.evchargingapp.models;
 
 public class GeoLocation {
+
     private double latitude;
     private double longitude;
 

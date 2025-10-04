@@ -1,3 +1,10 @@
+/*
+ * File: StationApi.java
+ * Purpose: Handles API requests related to charging stations.
+ *           Fetches all available stations and retrieves details
+ *           for a specific station by ID.
+ */
+
 package com.example.evchargingapp.api;
 
 import org.json.JSONArray;
@@ -6,7 +13,7 @@ import org.json.JSONObject;
 public class StationApi {
 
     public static JSONArray getAllStations() throws Exception {
-        String response = ApiClient.get("station", null).get(); // no token needed
+        String response = ApiClient.get("station", null).get();
         return new JSONArray(response);
     }
 

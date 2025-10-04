@@ -1,3 +1,8 @@
+/*
+ * File: EVOwnerDAO.java
+ * Purpose: Handles CRUD operations for EVOwner table
+ */
+
 package com.example.evchargingapp.database;
 
 import android.content.ContentValues;
@@ -8,14 +13,23 @@ import android.database.sqlite.SQLiteDatabase;
 import com.example.evchargingapp.models.EVOwner;
 
 public class EVOwnerDAO {
+
+    private SQLiteDatabase database;
     private EVOwnerDatabaseHelper dbHelper;
 
     public EVOwnerDAO(Context context) {
         dbHelper = new EVOwnerDatabaseHelper(context);
     }
 
+    public void open() {
+        database = dbHelper.getWritableDatabase();
+    }
+
+    public void close() {
+        dbHelper.close();
+    }
+
     public long insertEVOwner(EVOwner owner) {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(EVOwnerDatabaseHelper.COLUMN_NIC, owner.getNic());
         values.put(EVOwnerDatabaseHelper.COLUMN_NAME, owner.getName());
@@ -23,43 +37,40 @@ public class EVOwnerDAO {
         values.put(EVOwnerDatabaseHelper.COLUMN_EMAIL, owner.getEmail());
         values.put(EVOwnerDatabaseHelper.COLUMN_IS_ACTIVE, owner.isActive() ? 1 : 0);
 
-        long id = db.insert(EVOwnerDatabaseHelper.TABLE_NAME, null, values);
-        db.close();
-        return id;
+        return database.insertWithOnConflict(
+                EVOwnerDatabaseHelper.TABLE_EVOwner,
+                null,
+                values,
+                SQLiteDatabase.CONFLICT_REPLACE
+        );
     }
 
     public EVOwner getEVOwnerByNic(String nic) {
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor cursor = db.query(
-                EVOwnerDatabaseHelper.TABLE_NAME,
+        EVOwner owner = null;
+
+        Cursor cursor = database.query(
+                EVOwnerDatabaseHelper.TABLE_EVOwner,
                 null,
                 EVOwnerDatabaseHelper.COLUMN_NIC + "=?",
                 new String[]{nic},
-                null,
-                null,
-                null
+                null, null, null
         );
 
-        EVOwner owner = null;
-        if (cursor != null) {
-            if (cursor.moveToFirst()) {
-                owner = new EVOwner(
-                        cursor.getString(0),
-                        cursor.getString(1),
-                        cursor.getString(2),
-                        cursor.getString(3),
-                        cursor.getInt(4) == 1
-                );
-            }
+        if (cursor != null && cursor.moveToFirst()) {
+            owner = new EVOwner(
+                    cursor.getString(cursor.getColumnIndexOrThrow(EVOwnerDatabaseHelper.COLUMN_NIC)),
+                    cursor.getString(cursor.getColumnIndexOrThrow(EVOwnerDatabaseHelper.COLUMN_NAME)),
+                    cursor.getString(cursor.getColumnIndexOrThrow(EVOwnerDatabaseHelper.COLUMN_PHONE)),
+                    cursor.getString(cursor.getColumnIndexOrThrow(EVOwnerDatabaseHelper.COLUMN_EMAIL)),
+                    cursor.getInt(cursor.getColumnIndexOrThrow(EVOwnerDatabaseHelper.COLUMN_IS_ACTIVE)) == 1
+            );
             cursor.close();
         }
-        db.close();
+
         return owner;
     }
 
-    public void deleteAll() {
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        db.delete(EVOwnerDatabaseHelper.TABLE_NAME, null, null);
-        db.close();
+    public void deleteAllOwners() {
+        database.delete(EVOwnerDatabaseHelper.TABLE_EVOwner, null, null);
     }
 }

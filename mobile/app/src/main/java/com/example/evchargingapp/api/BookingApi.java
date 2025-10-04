@@ -1,3 +1,10 @@
+/*
+ * File: BookingApi.java
+ * Purpose: Provides API methods for managing EV charging bookings.
+ *           Supports creating new bookings, retrieving bookings
+ *           by owner, and updating booking details.
+ */
+
 package com.example.evchargingapp.api;
 
 import org.json.JSONArray;
@@ -10,8 +17,8 @@ public class BookingApi {
         JSONObject body = new JSONObject();
         body.put("stationId", stationId);
         body.put("ownerNic", ownerNic);
-        body.put("start", start);
-        body.put("end", end);
+        body.put("startTimeUtc", start);
+        body.put("endTimeUtc", end);
 
         String response = ApiClient.post("booking", body.toString(), token).get();
         return new JSONObject(response);

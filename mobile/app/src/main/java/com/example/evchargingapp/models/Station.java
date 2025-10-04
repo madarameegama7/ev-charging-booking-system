@@ -1,39 +1,41 @@
+/*
+ * File: Station.java
+ * Purpose: Represents a charging station
+ */
+
 package com.example.evchargingapp.models;
 
 public class Station {
-    private String id;
-    private String name;
-    private GeoLocation location;
-    private String type;
-    private int availableSlots;
-    private boolean isActive;
+
+    private String stationId;
+    private String stationName;
+    private String location;
+    private GeoLocation geoLocation;
+    private boolean isAvailable;
 
     public Station() {}
 
-    public Station(String id, String name, GeoLocation location, String type, int availableSlots, boolean isActive) {
-        this.id = id;
-        this.name = name;
+    public Station(String stationId, String stationName, String location, GeoLocation geoLocation, boolean isAvailable) {
+        this.stationId = stationId;
+        this.stationName = stationName;
         this.location = location;
-        this.type = type;
-        this.availableSlots = availableSlots;
-        this.isActive = isActive;
+        this.geoLocation = geoLocation;
+        this.isAvailable = isAvailable;
     }
 
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    // Getters and Setters
+    public String getStationId() { return stationId; }
+    public void setStationId(String stationId) { this.stationId = stationId; }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getStationName() { return stationName; }
+    public void setStationName(String stationName) { this.stationName = stationName; }
 
-    public GeoLocation getLocation() { return location; }
-    public void setLocation(GeoLocation location) { this.location = location; }
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
 
-    public String getType() { return type; }
-    public void setType(String type) { this.type = type; }
+    public GeoLocation getGeoLocation() { return geoLocation; }
+    public void setGeoLocation(GeoLocation geoLocation) { this.geoLocation = geoLocation; }
 
-    public int getAvailableSlots() { return availableSlots; }
-    public void setAvailableSlots(int availableSlots) { this.availableSlots = availableSlots; }
-
-    public boolean isActive() { return isActive; }
-    public void setActive(boolean active) { isActive = active; }
+    public boolean isAvailable() { return isAvailable; }
+    public void setAvailable(boolean available) { isAvailable = available; }
 }
