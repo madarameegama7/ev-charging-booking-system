@@ -17,9 +17,9 @@ import java.util.concurrent.Executors;
 
 public class LoginActivity extends AppCompatActivity {
 
-    private EditText etNic;
-    private Spinner spRole;
+    private EditText etNic, etPassword;
     private Button btnLogin;
+    private TextView tvRegister;
     private ProgressBar progressBar;
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
@@ -29,28 +29,23 @@ public class LoginActivity extends AppCompatActivity {
         setContentView(R.layout.activity_login);
 
         etNic = findViewById(R.id.etNic);
-        spRole = findViewById(R.id.spRole);
+        etPassword = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
         progressBar = findViewById(R.id.progressBar);
-
-        setupRoleSpinner();
+        tvRegister = findViewById(R.id.tvRegister);
 
         btnLogin.setOnClickListener(v -> attemptLogin());
+
+        // Register link
+        tvRegister.setOnClickListener(v -> {
+            Intent intent = new Intent(LoginActivity.this, RegisterActivity.class);
+            startActivity(intent);
+        });
     }
 
-    /** Populate the role spinner */
-    private void setupRoleSpinner() {
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_spinner_item,
-                new String[]{"Owner", "Operator"});
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spRole.setAdapter(adapter);
-    }
-
-    /** Trigger login process */
     private void attemptLogin() {
         final String nic = etNic.getText().toString().trim();
-        final String role = spRole.getSelectedItem().toString();
+        final String password = etPassword.getText().toString().trim();
 
         if (nic.isEmpty()) {
             etNic.setError("NIC required");
@@ -58,14 +53,20 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
+        if (password.isEmpty()) {
+            etPassword.setError("Password required");
+            etPassword.requestFocus();
+            return;
+        }
+
         toggleLoading(true);
 
         executor.execute(() -> {
             try {
-                JSONObject resp = AuthApi.login(nic, role);
+                JSONObject resp = AuthApi.login(nic, password); // Updated to send password
 
                 String token = resp.optString("token", null);
-                String returnedRole = resp.optString("role", role);
+                String role = resp.optString("role", null);
 
                 if (token == null || token.isEmpty()) {
                     throw new Exception("Invalid login credentials");
@@ -74,12 +75,20 @@ public class LoginActivity extends AppCompatActivity {
                 // Save user data
                 SharedPrefsHelper.saveToken(getApplicationContext(), token);
                 SharedPrefsHelper.saveNic(getApplicationContext(), nic);
-                SharedPrefsHelper.saveRole(getApplicationContext(), returnedRole);
+                SharedPrefsHelper.saveRole(getApplicationContext(), role);
 
-                // Navigate to dashboard on UI thread
+                // Navigate to dashboard based on role
                 runOnUiThread(() -> {
                     toggleLoading(false);
-                    Intent intent = new Intent(LoginActivity.this, DashboardActivity.class);
+                    Intent intent;
+                    if ("Owner".equalsIgnoreCase(role)) {
+                        intent = new Intent(LoginActivity.this, EVOwnerDashboardActivity.class);
+                    } else if ("Operator".equalsIgnoreCase(role)) {
+                        intent = new Intent(LoginActivity.this, EVOperatorDashboardActivity.class);
+                    } else {
+                        intent = new Intent(LoginActivity.this, LoginActivity.class);
+                        Toast.makeText(LoginActivity.this, "Unknown role", Toast.LENGTH_SHORT).show();
+                    }
                     startActivity(intent);
                     finish();
                 });
@@ -90,12 +99,12 @@ public class LoginActivity extends AppCompatActivity {
                     toggleLoading(false);
                     Toast.makeText(LoginActivity.this,
                             "Login failed: " + ex.getMessage(), Toast.LENGTH_LONG).show();
+                    etPassword.setText("");
                 });
             }
         });
     }
 
-    /** Show/hide loading UI */
     private void toggleLoading(boolean isLoading) {
         progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
         btnLogin.setEnabled(!isLoading);

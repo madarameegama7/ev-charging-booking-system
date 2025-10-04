@@ -15,14 +15,17 @@
         android:theme="@style/Theme.EVChargingApp"
         tools:targetApi="31">
         <activity
-            android:name=".activities.DashboardActivity"
+            android:name=".activities.RegisterActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.EVOperatorDashboardActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.EVOwnerDashboardActivity"
             android:exported="false" />
         <activity
             android:name=".activities.LoginActivity"
             android:exported="false" />
-        <activity
-            android:name=".activities.SplashActivity"
-            android:exported="false"></activity>
         <activity
             android:name=".MainActivity"
             android:exported="true">

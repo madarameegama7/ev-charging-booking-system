@@ -5,18 +5,23 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <!-- NIC -->
     <EditText
         android:id="@+id/etNic"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:hint="NIC" />
 
-    <Spinner
-        android:id="@+id/spRole"
+    <!-- Password -->
+    <EditText
+        android:id="@+id/etPassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp" />
+        android:hint="Password"
+        android:inputType="textPassword"
+        android:layout_marginTop="12dp"/>
 
+    <!-- Login button -->
     <Button
         android:id="@+id/btnLogin"
         android:layout_marginTop="18dp"
@@ -24,6 +29,7 @@
         android:layout_height="wrap_content"
         android:text="Login" />
 
+    <!-- Loading -->
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_marginTop="16dp"
@@ -31,4 +37,14 @@
         android:layout_width="wrap_content"
         android:layout_gravity="center"
         android:layout_height="wrap_content"/>
+
+    <!-- Register link -->
+    <TextView
+        android:id="@+id/tvRegister"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Don't have an account? Register"
+        android:textColor="@color/black"
+        android:layout_marginTop="24dp"
+        android:textSize="14sp"/>
 </LinearLayout>

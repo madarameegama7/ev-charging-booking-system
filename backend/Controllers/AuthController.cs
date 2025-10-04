@@ -33,9 +33,9 @@ namespace Backend.Controllers
             }
 
             // Validate role is either Backoffice or Operator
-            if (request.Role != "Backoffice" && request.Role != "Operator")
+            if (request.Role != "Backoffice" && request.Role != "Operator" && request.Role != "Owner")
             {
-                return BadRequest("Role must be either 'Backoffice' or 'Operator'.");
+                return BadRequest("Role must be either 'Backoffice', 'Operator', or 'Owner'.");
             }
 
             // Check if user already exists
