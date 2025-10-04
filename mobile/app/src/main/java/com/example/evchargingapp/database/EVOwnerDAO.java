@@ -41,14 +41,16 @@ public class EVOwnerDAO {
         );
 
         EVOwner owner = null;
-        if (cursor != null && cursor.moveToFirst()) {
-            owner = new EVOwner(
-                    cursor.getString(cursor.getColumnIndexOrThrow(EVOwnerDatabaseHelper.COLUMN_NIC)),
-                    cursor.getString(cursor.getColumnIndexOrThrow(EVOwnerDatabaseHelper.COLUMN_NAME)),
-                    cursor.getString(cursor.getColumnIndexOrThrow(EVOwnerDatabaseHelper.COLUMN_PHONE)),
-                    cursor.getString(cursor.getColumnIndexOrThrow(EVOwnerDatabaseHelper.COLUMN_EMAIL)),
-                    cursor.getInt(cursor.getColumnIndexOrThrow(EVOwnerDatabaseHelper.COLUMN_IS_ACTIVE)) == 1
-            );
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                owner = new EVOwner(
+                        cursor.getString(0),
+                        cursor.getString(1),
+                        cursor.getString(2),
+                        cursor.getString(3),
+                        cursor.getInt(4) == 1
+                );
+            }
             cursor.close();
         }
         db.close();

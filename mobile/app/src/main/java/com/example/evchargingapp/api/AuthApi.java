@@ -9,7 +9,7 @@ public class AuthApi {
         body.put("nic", nic);
         body.put("role", role);
 
-        String response = ApiClient.post("auth/login", body.toString(), null);
+        String response = ApiClient.post("auth/login", body.toString(), null).get();
         return new JSONObject(response);
     }
 }

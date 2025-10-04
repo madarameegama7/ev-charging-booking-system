@@ -1,38 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:padding="24dp"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <EditText
         android:id="@+id/etNic"
-        android:hint="NIC"
-        android:inputType="text"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:hint="NIC" />
 
     <Spinner
         android:id="@+id/spRole"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:entries="@array/roles_array"
-        android:layout_marginTop="16dp"/>
+        android:layout_marginTop="12dp" />
 
     <Button
         android:id="@+id/btnLogin"
-        android:text="Login"
+        android:layout_marginTop="18dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"/>
+        android:text="Login" />
 
     <ProgressBar
         android:id="@+id/progressBar"
+        android:layout_marginTop="16dp"
         android:visibility="gone"
-        android:layout_gravity="center"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"/>
-
+        android:layout_gravity="center"
+        android:layout_height="wrap_content"/>
 </LinearLayout>

@@ -15,29 +15,14 @@
         android:theme="@style/Theme.EVChargingApp"
         tools:targetApi="31">
         <activity
+            android:name=".activities.DashboardActivity"
+            android:exported="false" />
+        <activity
             android:name=".activities.LoginActivity"
             android:exported="false" />
         <activity
-            android:name=".ReservationAdapter"
-            android:exported="false" />
-        <activity
-            android:name=".UpdateProfileActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ViewReservationsActivity"
-            android:exported="false" />
-        <activity
-            android:name=".AddReservationActivity"
-            android:exported="false" />
-        <activity
-            android:name=".HomeActivity"
-            android:exported="false" />
-        <activity
-            android:name=".LoginActivity"
-            android:exported="false" />
-        <activity
-            android:name=".RegisterActivity"
-            android:exported="false" />
+            android:name=".activities.SplashActivity"
+            android:exported="false"></activity>
         <activity
             android:name=".MainActivity"
             android:exported="true">

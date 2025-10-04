@@ -13,12 +13,12 @@ public class BookingApi {
         body.put("start", start);
         body.put("end", end);
 
-        String response = ApiClient.post("booking", body.toString(), token);
+        String response = ApiClient.post("booking", body.toString(), token).get();
         return new JSONObject(response);
     }
 
     public static JSONArray getBookingsByOwner(String nic, String token) throws Exception {
-        String response = ApiClient.get("booking/owner/" + nic, token);
+        String response = ApiClient.get("booking/owner/" + nic, token).get();
         return new JSONArray(response);
     }
 

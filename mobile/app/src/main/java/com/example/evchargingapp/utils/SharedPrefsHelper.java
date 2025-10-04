@@ -3,7 +3,7 @@ package com.example.evchargingapp.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-public class SharedPrefHelper {
+public class SharedPrefsHelper {
 
     private static final String PREFS_NAME = Constants.PREFS_NAME;
 
