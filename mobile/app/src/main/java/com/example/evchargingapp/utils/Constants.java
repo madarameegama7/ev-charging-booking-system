@@ -1,7 +1,14 @@
+/*
+ * File: Constants.java
+ * Purpose: Defines global constant values for API endpoints,
+ *           SharedPreferences keys, and configuration values
+ *           used throughout the EVChargingApp mobile module.
+ */
+
 package com.example.evchargingapp.utils;
 
 public class Constants {
-    // Base URL of your backend service
+    // Base URL of backend service
     public static final String BASE_URL = "http://10.0.2.2:5000/api/";
 
     // API endpoints

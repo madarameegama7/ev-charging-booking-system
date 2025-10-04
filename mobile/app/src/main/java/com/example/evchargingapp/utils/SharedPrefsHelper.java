@@ -1,3 +1,10 @@
+/*
+ * File: SharedPrefsHelper.java
+ * Purpose: Provides helper methods for managing user session data
+ *           such as JWT token, NIC, and role using Android SharedPreferences.
+ *           Used across activities to maintain login state and authentication.
+ */
+
 package com.example.evchargingapp.utils;
 
 import android.content.Context;
