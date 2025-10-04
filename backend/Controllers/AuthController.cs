@@ -44,6 +44,21 @@ namespace Backend.Controllers
                 return Conflict("A user with this NIC already exists.");
 
             // Create new user with selected role
+
+
+            // Debug: Log password and hash, check for null/empty
+            var password = request.Password;
+            if (string.IsNullOrEmpty(password))
+            {
+                Console.WriteLine("[DEBUG][Register] WARNING: Password is null or empty!");
+            }
+            else
+            {
+                Console.WriteLine($"[DEBUG][Register] Password (raw): '{password}' (Length: {password.Length})");
+            }
+            var passwordHash = PasswordHelper.HashPassword(password);
+            Console.WriteLine($"[DEBUG][Register] PasswordHash: {passwordHash}");
+
             var newUser = new User
             {
                 NIC = request.NIC,
@@ -52,7 +67,7 @@ namespace Backend.Controllers
                 Phone = request.Phone ?? "",
                 Role = request.Role, // Use role from request
                 IsActive = true,
-                PasswordHash = PasswordHelper.HashPassword(request.Password)
+                PasswordHash = passwordHash
             };
 
             try
@@ -86,8 +101,23 @@ namespace Backend.Controllers
             if (existing is null || !existing.IsActive)
                 return Unauthorized("Invalid NIC or inactive account");
 
-            // Verify password
-            if (!PasswordHelper.VerifyPassword(request.Password, existing.PasswordHash))
+
+
+            // Debug: Log password and hash, check for null/empty
+            var inputPassword = request.Password;
+            if (string.IsNullOrEmpty(inputPassword))
+            {
+                Console.WriteLine("[DEBUG][Login] WARNING: Input Password is null or empty!");
+            }
+            else
+            {
+                Console.WriteLine($"[DEBUG][Login] Input Password (raw): '{inputPassword}' (Length: {inputPassword.Length})");
+            }
+            Console.WriteLine($"[DEBUG][Login] Stored Hash: {existing.PasswordHash}");
+            var verifyResult = PasswordHelper.VerifyPassword(inputPassword, existing.PasswordHash);
+            Console.WriteLine($"[DEBUG][Login] Verify Result: {verifyResult}");
+
+            if (!verifyResult)
                 return Unauthorized("Invalid password");
 
             var token = _tokenService.GenerateToken(existing);

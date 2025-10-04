@@ -18,13 +18,13 @@ namespace Backend.Models
 		public string NIC { get; set; }
 
         [BsonElement("name")]
-        public string Name { get; set; }  // Add this
+        public string Name { get; set; }
 
         [BsonElement("email")]
-        public string Email { get; set; }  // Add this
+        public string Email { get; set; }
 
         [BsonElement("phone")]
-        public string Phone { get; set; }  // Add this
+        public string Phone { get; set; }
 
 
         [BsonElement("role")]
