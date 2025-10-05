@@ -131,4 +131,21 @@ public class ApiClient {
 
         return sb.toString();
     }
+
+    // PATCH request (added for deactivate)
+    public static String patch(String endpoint, String token) throws Exception {
+        URL url = new URL(Constants.BASE_URL + endpoint);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+        conn.setRequestMethod("PATCH");
+        if (token != null && !token.isEmpty()) {
+            conn.setRequestProperty("Authorization", "Bearer " + token);
+        }
+        conn.setConnectTimeout(10000);
+        conn.setReadTimeout(10000);
+
+        int code = conn.getResponseCode();
+        conn.disconnect();
+        return String.valueOf(code);
+    }
 }

@@ -1,5 +1,6 @@
 ﻿// File: UserController.cs
 // Description: Web API controller for managing users
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Backend.Models;
@@ -102,5 +103,55 @@ namespace Backend.Controllers
 			var ok = await _userService.DeleteByNicAsync(nic);
 			return ok ? NoContent() : NotFound();
 		}
+
+		// Get user profile by NIC
+        [HttpGet("profile/{nic}")]
+        [Authorize(Roles = "Owner,Operator,Backoffice")]
+        public async Task<IActionResult> GetProfile(string nic)
+        {
+            var user = await _userService.GetByNicAsync(nic);
+            if (user == null) return NotFound("User not found.");
+
+            // Return minimal fields for profile display
+            return Ok(new
+            {
+                nic = user.NIC,
+                name = user.Name,
+                email = user.Email,
+                phone = user.Phone,
+                isActive = user.IsActive
+            });
+        }
+
+		// Update user profile
+        [HttpPut("profile/{nic}")]
+        [Authorize(Roles = "Owner")]
+        public async Task<IActionResult> UpdateProfile(string nic, [FromBody] User update)
+        {
+            var existing = await _userService.GetByNicAsync(nic);
+            if (existing == null) return NotFound("User not found.");
+
+            // Only allow updating name, email, and phone
+            existing.Name = update.Name ?? existing.Name;
+            existing.Email = update.Email ?? existing.Email;
+            existing.Phone = update.Phone ?? existing.Phone;
+
+            var updated = await _userService.UpdateByNicAsync(nic, existing);
+            return Ok(new { message = "Profile updated successfully", updated });
+        }
+
+		// Deactivate user account
+        [HttpPut("profile/{nic}/deactivate")]
+        [Authorize(Roles = "Owner")]
+        public async Task<IActionResult> DeactivateAccount(string nic)
+        {
+            var existing = await _userService.GetByNicAsync(nic);
+            if (existing == null) return NotFound("User not found.");
+
+            existing.IsActive = false;
+            var updated = await _userService.UpdateByNicAsync(nic, existing);
+
+            return Ok(new { message = "Account deactivated successfully" });
+        }
 	}
 }

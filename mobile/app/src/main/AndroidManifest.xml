@@ -15,6 +15,9 @@
         android:theme="@style/Theme.EVChargingApp"
         tools:targetApi="31">
         <activity
+            android:name=".activities.EVOwnerProfileActivity"
+            android:exported="false" />
+        <activity
             android:name=".activities.EVOperatorReservationActivity"
             android:exported="false" />
         <activity
