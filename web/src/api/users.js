@@ -15,6 +15,16 @@ export async function createUser({ nic, role, isActive = true }) {
 	if (!res.ok) throw new Error('Create failed');
 	return res.json();
 }
+export async function register({ nic, role, password }) {
+  const res = await fetch(`${API_BASE}/api/Auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ nic, role, passwordHash: password })
+  });
+  if (!res.ok) throw new Error('Registration failed');
+  return res.json();
+}
+
 
 export async function updateUser(nic, data) {
 	const res = await authFetch(`/api/User/${encodeURIComponent(nic)}`, {

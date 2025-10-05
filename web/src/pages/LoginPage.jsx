@@ -16,7 +16,7 @@ export default function LoginPage() {
       // Map email/password UI to NIC-based demo login
       // For demo: email box will be used for NIC, and Backoffice role by default
       const nic = email.trim();
-      await login(nic, role);
+      await login(nic, password);
       if (role === "Backoffice") navigate("/admin/dashboard");
       else if (role === "Operator") navigate("/operator/dashboard");
       else navigate("/home");
@@ -84,7 +84,6 @@ export default function LoginPage() {
                 onChange={(e)=>setRole(e.target.value)}
               >
                 <option value="Backoffice">Backoffice</option>
-                <option value="Owner">Owner</option>
                 <option value="Operator">Operator</option>
               </select>
             </div>
@@ -96,7 +95,7 @@ export default function LoginPage() {
                   htmlFor="password"
                   className="text-sm font-medium text-gray-700"
                 >
-                  Password (not required)
+                  Password
                 </label>
               </div>
               <div className="relative mt-1">
@@ -135,7 +134,7 @@ export default function LoginPage() {
             </div>
 
             {/* SignIn button */}
-            <button onClick={onSubmit} className="w-full flex items-center justify-center py-3 bg-blue-400 text-white rounded-lg hover:bg-blue-500 cursor-pointer transition-colors">
+            <button onClick={onSubmit} className="w-full flex items-center justify-center py-3 bg-[#347928] text-white rounded-lg hover:bg-green-800 cursor-pointer transition-colors">
               Sign In
             </button>
 
