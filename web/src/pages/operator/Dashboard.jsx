@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
-import { listStations, updateStation } from "../../api/stations";
-import { listBookingsByStation, updateBooking } from "../../api/bookings";
+import { listStations } from "../../api/stations";
+import { listBookingsByStation } from "../../api/bookings";
 import { Bell } from "lucide-react";
 import OperatorSidebar from "../../components/operator/OperatorSidebar";
+import StationComponent from "../../components/operator/StationComponent";
+import BookingComponent from "../../components/operator/BookingComponent";
+import QuickActionComponent from "../../components/operator/QuickActionComponent";
 
 export default function OperatorDashboard() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -21,7 +24,6 @@ export default function OperatorDashboard() {
     { id: "profile", label: "Profile" },
   ];
 
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("role");
@@ -29,6 +31,7 @@ export default function OperatorDashboard() {
     window.location.href = "/login";
   };
 
+  // Fetch stations
   useEffect(() => {
     (async () => {
       const s = await listStations();
@@ -36,6 +39,7 @@ export default function OperatorDashboard() {
     })();
   }, []);
 
+  // Fetch bookings for selected station
   useEffect(() => {
     (async () => {
       if (!stationId) return;
@@ -49,15 +53,12 @@ export default function OperatorDashboard() {
     })();
   }, [stationId]);
 
-  const currentStation = stations.find((s) => s.id === stationId);
-
   return (
     <div className="flex h-screen bg-gray-100">
-      {/* Sidebar */}
       <OperatorSidebar activeTab={activeTab} setActiveTab={setActiveTab} />
 
-      {/* Main */}
       <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header */}
         <header className="bg-white shadow-sm border-b border-gray-200 p-6">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-gray-800 capitalize">
@@ -80,153 +81,29 @@ export default function OperatorDashboard() {
           </div>
         </header>
 
+        {/* Main content area */}
         <main className="flex-1 overflow-y-auto p-6">
           {activeTab === "station" && (
-            <div className="space-y-4">
-              <label className="block text-sm font-medium">My Station</label>
-              <div className="flex gap-2 items-center">
-                <select
-                  className="border p-2"
-                  value={stationId}
-                  onChange={(e) => {
-                    setStationId(e.target.value);
-                    localStorage.setItem("operatorStationId", e.target.value);
-                  }}
-                >
-                  <option value="">Select station…</option>
-                  {stations.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name} ({s.type})
-                    </option>
-                  ))}
-                </select>
-                {currentStation && (
-                  <div className="text-sm text-gray-600">
-                    Slots: {currentStation.availableSlots} • Active:{" "}
-                    {currentStation.isActive ? "Yes" : "No"}
-                  </div>
-                )}
-              </div>
-              {currentStation && (
-                <div className="mt-3 flex gap-2">
-                  <button
-                    className="px-3 py-1 bg-blue-600 text-white rounded"
-                    onClick={async () => {
-                      await updateStation(currentStation.id, {
-                        ...currentStation,
-                        availableSlots: currentStation.availableSlots + 1,
-                      });
-                      const s = await listStations();
-                      setStations(s);
-                    }}
-                  >
-                    + Slot
-                  </button>
-                  <button
-                    className="px-3 py-1 bg-blue-600 text-white rounded"
-                    onClick={async () => {
-                      const next = Math.max(
-                        0,
-                        currentStation.availableSlots - 1
-                      );
-                      await updateStation(currentStation.id, {
-                        ...currentStation,
-                        availableSlots: next,
-                      });
-                      const s = await listStations();
-                      setStations(s);
-                    }}
-                  >
-                    - Slot
-                  </button>
-                </div>
-              )}
-            </div>
+            <StationComponent
+              stations={stations}
+              stationId={stationId}
+              setStationId={setStationId}
+              refreshStations={() => listStations().then(setStations)}
+            />
           )}
 
           {activeTab === "bookings" && (
-            <div className="bg-white rounded shadow p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="font-semibold">Upcoming / Ongoing Bookings</h2>
-                {loading && (
-                  <span className="text-sm text-gray-500">Loading…</span>
-                )}
-              </div>
-              <table className="min-w-full">
-                <thead>
-                  <tr className="bg-gray-100 text-left">
-                    <th className="p-2">Owner NIC</th>
-                    <th className="p-2">Start</th>
-                    <th className="p-2">End</th>
-                    <th className="p-2">Status</th>
-                    <th className="p-2">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bookings.map((b) => (
-                    <tr key={b.id} className="border-b">
-                      <td className="p-2">{b.ownerNIC}</td>
-                      <td className="p-2">
-                        {new Date(b.startTimeUtc).toLocaleString()}
-                      </td>
-                      <td className="p-2">
-                        {new Date(b.endTimeUtc).toLocaleString()}
-                      </td>
-                      <td className="p-2">{b.status}</td>
-                      <td className="p-2 flex gap-2">
-                        <button
-                          className="px-2 py-1 bg-green-600 text-white rounded"
-                          onClick={async () => {
-                            try {
-                              await updateBooking(b.id, { ...b, status: 1 });
-                              const all = await listBookingsByStation(
-                                stationId
-                              );
-                              setBookings(all);
-                            } catch (e) {
-                              alert(e.message);
-                            }
-                          }}
-                        >
-                          Check-in
-                        </button>
-                        <button
-                          className="px-2 py-1 bg-blue-600 text-white rounded"
-                          onClick={async () => {
-                            try {
-                              await updateBooking(b.id, { ...b, status: 3 });
-                              const all = await listBookingsByStation(
-                                stationId
-                              );
-                              setBookings(all);
-                            } catch (e) {
-                              alert(e.message);
-                            }
-                          }}
-                        >
-                          Complete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <BookingComponent
+              bookings={bookings}
+              loading={loading}
+              stationId={stationId}
+              refreshBookings={() =>
+                listBookingsByStation(stationId).then(setBookings)
+              }
+            />
           )}
 
-          {activeTab === "actions" && (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white rounded shadow p-4">
-                Adjust slots in My Station.
-              </div>
-              <div className="bg-white rounded shadow p-4">
-                Scan QR (coming soon).
-              </div>
-              <div className="bg-white rounded shadow p-4">
-                Report issue (coming soon).
-              </div>
-            </div>
-          )}
+          {activeTab === "actions" && <QuickActionComponent />}
         </main>
       </div>
     </div>
