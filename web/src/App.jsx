@@ -48,14 +48,7 @@ export default function App() {
           }
         />
 
-        <Route
-          path="/profile"
-          element={
-            <DashboardLayout>
-              <Profile />
-            </DashboardLayout>
-          }
-        />
+        <Route path="/profile" element={<Profile />} />
 
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUp />} />
