@@ -73,7 +73,7 @@ export default function OperatorDashboard() {
               </div>
               <button
                 onClick={handleLogout}
-                className="px-3 py-2 bg-gray-800 text-white rounded-md hover:bg-black cursor-pointer"
+                className="px-6 py-2 bg-[#347928] text-white rounded-lg hover:bg-green-800 cursor-pointer"
               >
                 Logout
               </button>
