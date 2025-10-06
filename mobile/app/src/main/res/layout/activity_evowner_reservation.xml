@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -12,7 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Add Reservation"
-        android:backgroundTint="@color/purple_500"
+        android:backgroundTint="@android:color/holo_purple"
         android:textColor="@android:color/white"
         android:textAllCaps="false"
         android:padding="12dp"
@@ -25,8 +26,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         android:background="@android:color/white"
-        app:tabIndicatorColor="@color/purple_500"
-        app:tabSelectedTextColor="@color/purple_500"
+        app:tabIndicatorColor="@android:color/holo_purple"
+        app:tabSelectedTextColor="@android:color/holo_purple"
         app:tabTextColor="@android:color/darker_gray" />
 
     <!-- RecyclerView for Bookings -->

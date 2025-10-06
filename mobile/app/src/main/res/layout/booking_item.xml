@@ -43,7 +43,7 @@
             android:layout_height="wrap_content"
             android:text="Modify"
             android:textAllCaps="false"
-            android:backgroundTint="@color/purple_500"
+            android:backgroundTint="@android:color/holo_purple"
             android:textColor="@android:color/white"
             android:layout_marginEnd="8dp" />
 

@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="primary_green">#347928</color>
+    <color name="primary_green_dark">#2a6120</color>
+    <color name="primary_green_light">#4a9438</color>
+    <color name="emerald_50">#ecfdf5</color>
+    <color name="emerald_100">#d1fae5</color>
+    <color name="gray_50">#f9fafb</color>
+    <color name="gray_100">#f3f4f6</color>
+    <color name="gray_600">#4b5563</color>
+    <color name="gray_800">#1f2937</color>
+    <color name="gray_900">#111827</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="error_red">#dc2626</color>
 </resources>

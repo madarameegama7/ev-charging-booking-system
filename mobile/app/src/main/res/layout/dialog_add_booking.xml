@@ -65,7 +65,7 @@
         android:layout_height="wrap_content"
         android:text="Submit"
         android:textAllCaps="false"
-        android:backgroundTint="@color/purple_500"
+        android:backgroundTint="@android:color/holo_purple"
         android:textColor="@android:color/white"
         android:layout_marginTop="16dp"
         android:padding="12dp"
