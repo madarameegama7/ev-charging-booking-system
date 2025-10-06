@@ -1,14 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, X, MapPin, Calendar, Zap, User } from "lucide-react";
+import { Menu, X, MapPin, Calendar, Zap, User, House } from "lucide-react";
+import logo from "../../assets/common/EV.png";
+import { getCurrentUser } from "../../api/auth";
 
 export default function OperatorSidebar({ activeTab, setActiveTab }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [currentUser, setCurrentUser] = useState(null); // new
   const navigate = useNavigate();
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   const sidebarItems = [
+    { id: "home", label: "Home", icon: House },
     { id: "station", label: "My Station", icon: MapPin },
     { id: "bookings", label: "Bookings", icon: Calendar },
     { id: "actions", label: "Quick Actions", icon: Zap },
@@ -18,39 +22,64 @@ export default function OperatorSidebar({ activeTab, setActiveTab }) {
   const handleItemClick = (id) => {
     if (id === "profile") {
       navigate("/profile");
+    } else if (id === "home") {
+      window.location.href = "http://localhost:5173/";
     } else {
       setActiveTab(id);
     }
   };
 
+  // Load user info
+  useEffect(() => {
+    const user = getCurrentUser();
+    setCurrentUser(user);
+  }, []);
+
   return (
     <div
       className={`${
         isSidebarOpen ? "w-80" : "w-20"
-      } transition-all duration-300 ease-in-out shadow-2xl`}
+      } transition-all duration-300 ease-in-out shadow-2xl flex flex-col h-full relative`} // added relative
     >
+      {/* Sidebar toggle button at top */}
+      <button
+        onClick={toggleSidebar}
+        className="absolute top-4 right-4 text-black p-2 rounded-lg cursor-pointer z-10"
+      >
+        {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+      </button>
+
       <div className="flex flex-col h-full">
         {/* Header */}
-        <div className="p-6">
-          <div className="flex items-center justify-between">
-            <div
-              className={`${
-                isSidebarOpen ? "block" : "hidden"
-              } transition-all duration-300`}
-            >
-              <h1 className="text-2xl font-bold text-blue-600 flex items-center">
-                EVConnect
-              </h1>
-              <p className="text-black text-sm mt-1 text-center">
-                Welcome, Operator
-              </p>
+        <div className="p-6 pt-12">
+          {" "}
+          {/* added pt-12 to avoid overlap with button */}
+          <div
+            className={`${
+              isSidebarOpen ? "block" : "hidden"
+            } transition-all duration-300`}
+          >
+            <div className="flex flex-col gap-10">
+              <div className="flex gap-6">
+                <div className="flex">
+                  <img
+                    src={logo}
+                    alt="logo"
+                    width={60}
+                    height={60}
+                    className="rounded-full"
+                  />
+                </div>
+                <div className="flex items-center">
+                  <h1 className="text-2xl font-bold text-[#347928]">
+                    EVCharge
+                  </h1>
+                </div>
+              </div>
+              <div className="flex justify-center">
+                <p className="text-gray-800 text-base">Welcome Operator!</p>
+              </div>
             </div>
-            <button
-              onClick={toggleSidebar}
-              className="text-black p-2 rounded-lg cursor-pointer"
-            >
-              {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
           </div>
         </div>
 
@@ -80,6 +109,23 @@ export default function OperatorSidebar({ activeTab, setActiveTab }) {
             );
           })}
         </nav>
+
+        {/* User profile at bottom */}
+        {isSidebarOpen && currentUser && (
+          <div className="flex items-center justify-center gap-3 mt-auto rounded-xl mb-6">
+            <div className="w-10 h-10 flex items-center justify-center bg-[#347928] text-white font-bold rounded-full">
+              {currentUser.firstName?.slice(0, 2).toUpperCase() || "NA"}
+            </div>
+            <div className="flex flex-col">
+              <span className="font-medium text-gray-800">
+                {currentUser.firstName} {currentUser.lastName}
+              </span>
+              <span className="text-sm text-gray-500">
+                {currentUser.email || currentUser.nic}
+              </span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
