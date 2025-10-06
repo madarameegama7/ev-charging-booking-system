@@ -5,7 +5,7 @@ using MongoDB.Bson.Serialization.Attributes;
 
 namespace Backend.Models
 {
-	
+
 	public class EVOwner
 	{
 		[BsonId]
@@ -28,5 +28,3 @@ namespace Backend.Models
 		public bool IsActive { get; set; } = true;
 	}
 }
-
-

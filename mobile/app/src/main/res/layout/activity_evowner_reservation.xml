@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
-    android:background="@android:color/white">
+    android:orientation="vertical"
+    android:background="@android:color/white"
+    android:padding="16dp">
 
-    <!-- Add Booking Button -->
+    <!-- Add Reservation Button -->
     <Button
         android:id="@+id/btnAddBooking"
         android:layout_width="match_parent"
@@ -15,19 +16,27 @@
         android:textColor="@android:color/white"
         android:textAllCaps="false"
         android:padding="12dp"
-        android:layout_alignParentTop="true"
-        android:layout_marginBottom="16dp"
         android:elevation="4dp" />
 
-    <!-- List of Bookings -->
+    <!-- Tabs for Upcoming / Past -->
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:background="@android:color/white"
+        app:tabIndicatorColor="@color/purple_500"
+        app:tabSelectedTextColor="@color/purple_500"
+        app:tabTextColor="@android:color/darker_gray" />
+
+    <!-- RecyclerView for Bookings -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvBookings"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_below="@id/btnAddBooking"
-        android:layout_marginTop="12dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingTop="12dp"
         android:clipToPadding="false"
-        android:paddingBottom="16dp"
         android:scrollbars="vertical" />
 
     <!-- Progress Bar -->
@@ -36,7 +45,7 @@
         style="?android:attr/progressBarStyleLarge"
         android:layout_width="64dp"
         android:layout_height="64dp"
-        android:layout_centerInParent="true"
+        android:layout_gravity="center"
         android:visibility="gone" />
 
-</RelativeLayout>
+</LinearLayout>
