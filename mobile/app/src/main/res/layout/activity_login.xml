@@ -23,11 +23,16 @@
             android:layout_marginBottom="32dp">
 
             <!-- Icon Container -->
-            <View
-                android:layout_width="80dp"
-                android:layout_height="80dp"
+            <ImageView
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:src="@drawable/logo"
+                android:contentDescription="App Logo"
+                android:scaleType="centerInside"
                 android:background="@drawable/bg_button_primary"
-                android:elevation="4dp"/>
+                android:elevation="4dp"
+                android:padding="8dp"/>
+
 
             <TextView
                 android:layout_width="wrap_content"
