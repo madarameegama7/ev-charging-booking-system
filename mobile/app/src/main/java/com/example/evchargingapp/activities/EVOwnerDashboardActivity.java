@@ -13,7 +13,7 @@ import com.example.evchargingapp.utils.SharedPrefsHelper;
 public class EVOwnerDashboardActivity extends AppCompatActivity {
 
     private TextView tvWelcome;
-    private Button btnLogout, btnViewStations, btnMyReservations;
+    private Button btnLogout, btnViewStations, btnMyReservations, btnProfile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,6 +24,7 @@ public class EVOwnerDashboardActivity extends AppCompatActivity {
         btnLogout = findViewById(R.id.btnLogout);
         btnViewStations = findViewById(R.id.btnViewStations);
         btnMyReservations = findViewById(R.id.btnMyReservations);
+        btnProfile = findViewById(R.id.btnProfile);
 
         // Show welcome message with NIC
         String nic = SharedPrefsHelper.getNic(this);
@@ -35,6 +36,12 @@ public class EVOwnerDashboardActivity extends AppCompatActivity {
             Intent intent = new Intent(EVOwnerDashboardActivity.this, LoginActivity.class);
             startActivity(intent);
             finish();
+        });
+
+        // Profile button click
+        btnProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(EVOwnerDashboardActivity.this, EVOwnerProfileActivity.class);
+            startActivity(intent);
         });
 
         // TODO: Implement navigation to station list

@@ -56,11 +56,15 @@
                 android:layout_height="120dp"
                 android:layout_marginBottom="16dp">
 
-                <View
+                <ImageView
                     android:layout_width="120dp"
                     android:layout_height="120dp"
+                    android:src="@drawable/user"
+                    android:contentDescription="User Image"
+                    android:scaleType="centerInside"
                     android:background="@drawable/bg_avatar"
-                    android:elevation="2dp"/>
+                    android:elevation="2dp"
+                    android:padding="8dp"/>
 
                 <TextView
                     android:id="@+id/tvInitials"
@@ -361,7 +365,7 @@
             </LinearLayout>
 
             <!-- Deactivate Button -->
-            <Button
+            <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnDeactivate"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
