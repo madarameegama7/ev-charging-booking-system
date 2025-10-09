@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Users, MapPin, Calendar, Zap, Bell, Settings } from "lucide-react";
+import { Users, MapPin, Calendar, Zap, Bell, Settings, House } from "lucide-react";
 import UsersOverview from "../../components/admin/UsersOverview";
 import StationsOverview from "../../components/admin/StationsOverview";
 import BookingsSummary from "../../components/admin/BookingsSummery";
@@ -12,6 +12,7 @@ export default function AdminDashboard() {
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   const sidebarItems = [
+    { id: "home", label: "Home", icon: House },
     { id: "users", label: "Users Overview", icon: Users },
     { id: "stations", label: "Stations Overview", icon: MapPin },
     { id: "bookings", label: "Bookings Summary", icon: Calendar },
@@ -25,8 +26,6 @@ export default function AdminDashboard() {
         return <StationsOverview />;
       case "bookings":
         return <BookingsSummary />;
-      case "actions":
-        return <QuickActions />;
       default:
         return <UsersOverview />;
     }

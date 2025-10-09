@@ -7,7 +7,7 @@ import logo from "../../assets/common/EV.png";
 export default function AdminSidebar({
   isSidebarOpen,
   toggleSidebar,
-  sidebarItems,
+  sidebarItems = [],
   activeTab,
   setActiveTab,
 }) {
@@ -22,6 +22,8 @@ export default function AdminSidebar({
   const handleItemClick = (id) => {
     if (id === "profile") {
       navigate("/profile");
+    } else if (id === "home") {
+      window.location.href = "http://localhost:5173/";
     } else {
       setActiveTab(id);
     }
@@ -88,7 +90,7 @@ export default function AdminSidebar({
               <button
                 key={item.id}
                 onClick={() => handleItemClick(item.id)}
-                className={`w-full flex items-center p-4 rounded-xl transition-all duration-200 ${
+                className={`w-full flex items-center p-4 rounded-xl transition-all duration-200 cursor-pointer ${
                   activeTab === item.id
                     ? "bg-white/40 text-black shadow-lg"
                     : "text-black hover:text-black"
