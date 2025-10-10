@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Facebook, Linkedin, Twitter, Youtube, Instagram, Mail, Phone, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import logo from "../assets/common/EV.png"
+import { useNavigate } from 'react-router-dom';
 
 export default function EVOperatorFooter() {
   const [email, setEmail] = useState('');
+  const navigate = useNavigate();
 
   const handleSubmit = () => {
     if (email) {
@@ -21,7 +23,9 @@ export default function EVOperatorFooter() {
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-6 md:mb-0">
             Let's Connect there
           </h2>
-          <button className="bg-[#347928] hover:bg-green-800 text-white px-8 py-3 rounded-lg flex items-center gap-2 transition-colors duration-200">
+          <button 
+          onClick={() => navigate("/contactus")}
+          className="bg-[#347928] hover:bg-green-800 text-white px-8 py-3 cursor-pointer rounded-lg flex items-center gap-2 transition-colors duration-200">
             Connect <ArrowRight size={20} />
           </button>
         </div>
