@@ -49,6 +49,15 @@ export async function updateUser(nic, data) {
 	return res.json();
 }
 
+export async function changePassword(nic, newPassword) {
+  const res = await authFetch(`/api/User/${encodeURIComponent(nic)}/password`, {
+    method: 'POST',
+    body: JSON.stringify({ NewPassword: newPassword })
+  });
+  if (!res.ok) throw new Error('Password change failed');
+  return res.json();
+}
+
 export async function setUserStatus(nic, isActive) {
 	const res = await authFetch(`/api/User/${encodeURIComponent(nic)}/status?isActive=${isActive}`, {
 		method: 'PATCH'
