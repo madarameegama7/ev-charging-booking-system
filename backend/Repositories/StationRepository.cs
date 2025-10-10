@@ -33,6 +33,12 @@ namespace Backend.Repositories
 			await _collection.ReplaceOneAsync(s => s.Id == id, update, new ReplaceOptions { IsUpsert = false });
 			return await _collection.Find(s => s.Id == id).FirstOrDefaultAsync();
 		}
+		  public async Task<Station?> GetByStationIdAsync(string stationId)
+        {
+            return await _collection
+                .Find(s => s.StationId == stationId)
+                .FirstOrDefaultAsync();
+        }
 	}
 }
 

@@ -36,6 +36,25 @@ export default function OperatorDashboard() {
     (async () => {
       const s = await listStations();
       setStations(s);
+      // Auto-select station assigned to this operator if available
+      const role = localStorage.getItem("role");
+      const nic = localStorage.getItem("nic");
+      if (role === "Operator" && nic) {
+        // try to find station where operatorNic matches current operator NIC
+        const assigned = s.find((st) => (st.operatorNic ?? st.operatorNIC ?? '') === nic);
+        if (assigned) {
+          setStationId(assigned.id);
+          localStorage.setItem("operatorStationId", assigned.id);
+          return;
+        }
+      }
+
+      // If operator hasn't selected a station yet, auto-select the first available station
+      if ((!stationId || stationId === "") && s && s.length > 0) {
+        const firstId = s[0].id;
+        setStationId(firstId);
+        localStorage.setItem("operatorStationId", firstId);
+      }
     })();
   }, []);
 
@@ -45,7 +64,38 @@ export default function OperatorDashboard() {
       if (!stationId) return;
       setLoading(true);
       try {
-        const all = await listBookingsByStation(stationId);
+        // First try using the station id (normal case)
+        let all = await listBookingsByStation(stationId);
+
+        // Fallback: some bookings were stored using station name instead of id.
+        // If we got no results, try querying by the station name.
+        if (Array.isArray(all) && all.length === 0) {
+          const st = stations.find((s) => s.id === stationId);
+          if (st && st.name) {
+            const byName = await listBookingsByStation(st.name);
+            all = byName;
+          }
+        }
+
+        // Final tolerant fallback: fetch all bookings and filter those whose stationId
+        // looks like the station name (covers legacy data where stationId stores a name)
+        if (Array.isArray(all) && all.length === 0) {
+          try {
+            const allBookings = await import('../../api/bookings').then(m => m.listAllBookings());
+            const st = stations.find((s) => s.id === stationId);
+            if (st && st.name) {
+              const name = st.name.toLowerCase();
+              const filtered = (allBookings || []).filter(b => {
+                const sid = (b.stationId ?? b.stationID ?? b.StationId ?? '') + '';
+                return sid.toLowerCase() === name || sid.toLowerCase().includes(name);
+              });
+              all = filtered;
+            }
+          } catch (e) {
+            console.warn('Tolerant booking fallback failed', e);
+          }
+        }
+
         setBookings(all);
       } finally {
         setLoading(false);
@@ -89,6 +139,7 @@ export default function OperatorDashboard() {
               stationId={stationId}
               setStationId={setStationId}
               refreshStations={() => listStations().then(setStations)}
+              bookings={bookings}
             />
           )}
 

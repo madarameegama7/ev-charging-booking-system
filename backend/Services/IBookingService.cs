@@ -12,6 +12,7 @@ namespace Backend.Services
 		Task<List<Booking>> GetByOwnerAsync(string nic);
 		Task<List<Booking>> GetByStationAsync(string stationId);
 		Task<Booking?> UpdateAsync(string id, Booking update);
+		
 	}
 }
 

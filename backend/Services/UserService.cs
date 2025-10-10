@@ -33,10 +33,11 @@ namespace Backend.Services
             update.Id = existing.Id;
             update.NIC = existing.NIC; // NIC immutable
 
-            // Only update password if provided
+            // Only update password if provided. The controller currently provides a hashed PasswordHash
+            // so do not re-hash here to avoid double-hashing. If no password supplied, keep existing hash.
             if (!string.IsNullOrEmpty(update.PasswordHash))
             {
-                update.PasswordHash = PasswordHelper.HashPassword(update.PasswordHash);
+                // assume already hashed by caller
             }
             else
             {

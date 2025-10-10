@@ -6,10 +6,24 @@ export async function listUsers() {
 	return res.json();
 }
 
-export async function createUser({ nic, role, isActive = true }) {
+export async function createUser({ nic, role, isActive = true, password, firstName, lastName, email, phone }) {
+	const payload = {
+		NIC: nic,
+		Role: role,
+		IsActive: isActive,
+		Password: password,
+		FirstName: firstName,
+		LastName: lastName,
+		Email: email,
+		Phone: phone,
+		// Also include Name and PasswordHash for compatibility with server expectations
+		Name: `${firstName || ''}${firstName && lastName ? ' ' : ''}${lastName || ''}`.trim(),
+		PasswordHash: password // server will re-hash or ignore if it generates its own
+	};
+
 	const res = await authFetch('/api/User', {
 		method: 'POST',
-		body: JSON.stringify({ nic, role, isActive })
+		body: JSON.stringify(payload)
 	});
 	if (res.status === 409) throw new Error('NIC already exists');
 	if (!res.ok) throw new Error('Create failed');
@@ -33,6 +47,15 @@ export async function updateUser(nic, data) {
 	});
 	if (!res.ok) throw new Error('Update failed');
 	return res.json();
+}
+
+export async function changePassword(nic, newPassword) {
+  const res = await authFetch(`/api/User/${encodeURIComponent(nic)}/password`, {
+    method: 'POST',
+    body: JSON.stringify({ NewPassword: newPassword })
+  });
+  if (!res.ok) throw new Error('Password change failed');
+  return res.json();
 }
 
 export async function setUserStatus(nic, isActive) {

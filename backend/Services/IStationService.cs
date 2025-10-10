@@ -11,6 +11,7 @@ namespace Backend.Services
 		Task<Station> CreateAsync(Station station);
 		Task<Station?> UpdateAsync(string id, Station update);
 		Task<bool> SetActiveAsync(string id, bool isActive);
+		Task<Station?> GetByStationIdAsync(string stationId);
 	}
 }
 
