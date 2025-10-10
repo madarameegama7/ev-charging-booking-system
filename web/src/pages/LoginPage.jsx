@@ -16,10 +16,19 @@ export default function LoginPage() {
       // Map email/password UI to NIC-based demo login
       // For demo: email box will be used for NIC, and Backoffice role by default
       const nic = email.trim();
-      await login(nic, password);
-      if (role === "Backoffice") navigate("/admin/dashboard");
-      else if (role === "Operator") navigate("/operator/dashboard");
-      else navigate("/home");
+      const resp = await login(nic, password);
+
+      // If server requires password change (one-time password path), redirect to change password flow
+      if (resp && resp.forcePasswordChange) {
+        localStorage.setItem('nic', nic);
+        // Navigate to change password page
+        navigate('/change-password');
+        return;
+      }
+
+  if (role === "Backoffice") navigate("/admin/dashboard");
+  else if (role === "Operator") navigate("/operator/dashboard");
+  else navigate("/");
     } catch (err) {
       alert("Login failed");
     }
