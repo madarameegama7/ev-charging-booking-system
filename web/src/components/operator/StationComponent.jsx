@@ -40,8 +40,10 @@ export default function StationComponent({
 
         {currentStation && (
           <div className="text-sm text-gray-600">
-            Slots: {currentStation.availableSlots} • Active:{" "}
-            {currentStation.isActive ? "Yes" : "No"}
+            Slots: {currentStation.availableSlots} • Active: {currentStation.isActive ? "Yes" : "No"}
+            {currentStation.operatorNic ? (
+              <span className="ml-3">• Operator: {currentStation.operatorNic}</span>
+            ) : null}
           </div>
         )}
       </div>
