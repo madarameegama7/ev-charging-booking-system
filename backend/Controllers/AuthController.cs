@@ -127,7 +127,7 @@ namespace Backend.Controllers
             var firstName = nameParts.Length > 0 ? nameParts[0] : "";
             var lastName = nameParts.Length > 1 ? nameParts[1] : "";
 
-            return Ok(new { token, role = existing.Role, nic = existing.NIC, firstName = firstName, lastName = lastName });
+            return Ok(new { token, role = existing.Role, nic = existing.NIC, firstName = firstName, lastName = lastName, forcePasswordChange = existing.ForcePasswordChange });
         }
     }
 

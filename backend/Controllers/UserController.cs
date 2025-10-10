@@ -95,6 +95,7 @@ namespace Backend.Controllers
 				{
 					tempPassword = System.Guid.NewGuid().ToString("N").Substring(0, 10);
 					newUser.PasswordHash = PasswordHelper.HashPassword(tempPassword);
+					newUser.ForcePasswordChange = true;
 				}
 				else
 				{
@@ -129,6 +130,31 @@ namespace Backend.Controllers
 			var updated = await _userService.UpdateByNicAsync(nic, update);
 			return updated is null ? NotFound() : Ok(updated);
 		}
+
+		// Change password (Owner/Operator/Backoffice). Owner/Operator can change their own password; Backoffice can change any.
+		[HttpPost("{nic}/password")]
+		[Authorize(Roles = "Owner,Operator,Backoffice")]
+		public async Task<IActionResult> ChangePassword(string nic, [FromBody] ChangePasswordRequest req)
+		{
+			// Only allow if the caller is Backoffice or the same nic
+			var isBackoffice = User.IsInRole("Backoffice");
+			var callerNic = User.FindFirst("nic")?.Value;
+			if (!isBackoffice && !string.Equals(callerNic, nic, StringComparison.OrdinalIgnoreCase))
+				return Forbid();
+
+			if (string.IsNullOrWhiteSpace(req.NewPassword)) return BadRequest("NewPassword is required");
+
+			var existing = await _userService.GetByNicAsync(nic);
+			if (existing is null) return NotFound();
+
+			existing.PasswordHash = PasswordHelper.HashPassword(req.NewPassword);
+			existing.ForcePasswordChange = false;
+
+			var updated = await _userService.UpdateByNicAsync(nic, existing);
+			return Ok(new { message = "Password updated successfully" });
+		}
+
+		public class ChangePasswordRequest { public string? NewPassword { get; set; } }
 
 		//Activate/Deactivate by NIC
 		[HttpPatch("{nic}/status")]
@@ -180,8 +206,8 @@ namespace Backend.Controllers
             existing.Email = update.Email ?? existing.Email;
             existing.Phone = update.Phone ?? existing.Phone;
 
-            var updated = await _userService.UpdateByNicAsync(nic, existing);
-            return Ok(new { message = "Profile updated successfully", updated });
+			var updatedUser = await _userService.UpdateByNicAsync(nic, existing);
+			return Ok(new { message = "Profile updated successfully", updated = updatedUser });
         }
 
 		// Deactivate user account
@@ -193,9 +219,9 @@ namespace Backend.Controllers
             if (existing == null) return NotFound("User not found.");
 
             existing.IsActive = false;
-            var updated = await _userService.UpdateByNicAsync(nic, existing);
+			await _userService.UpdateByNicAsync(nic, existing);
 
-            return Ok(new { message = "Account deactivated successfully" });
+			return Ok(new { message = "Account deactivated successfully" });
         }
 	}
 }
