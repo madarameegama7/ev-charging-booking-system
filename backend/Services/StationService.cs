@@ -18,7 +18,13 @@ namespace Backend.Services
 
 		public Task<List<Station>> GetAllAsync() => _repo.GetAllAsync();
 		public Task<Station?> GetByIdAsync(string id) => _repo.GetByIdAsync(id);
+		
 		public Task<Station> CreateAsync(Station station) => _repo.CreateAsync(station);
+public async Task<Station?> GetByStationIdAsync(string stationId)
+{
+    return await _repo.GetByStationIdAsync(stationId);
+}
+
 
 		public async Task<Station?> UpdateAsync(string id, Station update)
 		{

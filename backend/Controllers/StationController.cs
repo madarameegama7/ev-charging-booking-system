@@ -25,6 +25,14 @@ namespace Backend.Controllers
 			var s = await _service.GetByIdAsync(id);
 			return s is null ? NotFound() : Ok(s);
 		}
+		[HttpGet("byStationId/{stationId}")]
+		[AllowAnonymous]
+		public async Task<IActionResult> GetByStationId(string stationId)
+		{
+			var s = await _service.GetByStationIdAsync(stationId);
+			return s is null ? NotFound() : Ok(s);
+		}
+
 
 		[HttpPost]
 		[Authorize(Roles = "Backoffice")]

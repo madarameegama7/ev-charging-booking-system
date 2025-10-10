@@ -25,10 +25,12 @@ namespace Backend.Controllers
 
 		[HttpGet]
 		[Authorize(Roles = "Backoffice")]
-		public async Task<IActionResult> GetAll()
-		{
-			return Ok(await _service.GetAllAsync());
-		}
+		 [HttpGet]
+        public async Task<ActionResult<List<Booking>>> GetAll()
+        {
+            var bookings = await _service.GetAllAsync();
+            return Ok(bookings);
+        }
 
 		[HttpGet("{id}")]
 		[Authorize(Roles = "Owner,Operator,Backoffice")]

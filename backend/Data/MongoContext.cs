@@ -13,11 +13,11 @@ namespace Backend.Data
 		public IMongoDatabase Database { get; }
 		public IMongoClient Client { get; }
 
-		public MongoContext(IOptions<MongoDBSettings> options)
-		{
-			Client = new MongoClient(options.Value.ConnectionString);
-			Database = Client.GetDatabase(options.Value.DatabaseName);
-		}
+		public MongoContext(IMongoClient client, MongoDBSettings settings)
+        {
+            // Use settings.DatabaseName to get the database
+            Database = client.GetDatabase(settings.DatabaseName);
+        }
 
 		public IMongoCollection<T> GetCollection<T>(string name) => Database.GetCollection<T>(name);
 	}
