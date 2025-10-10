@@ -38,8 +38,7 @@ namespace Backend.Services
 		public Task<List<Booking>> GetByOwnerAsync(string nic) => _repo.GetByOwnerAsync(nic);
 		public async Task<List<Booking>> GetByStationAsync(string stationId)
 		{
-			// Try to resolve station name for loose matching (legacy bookings may store name in StationId)
-			var station = await _stationRepo.GetByIdAsync(stationId);
+			var station = await _stationRepo.GetByStationIdAsync(stationId);
 			var stationName = station?.Name;
 			return await _repo.GetByStationLooseAsync(stationId, stationName);
 		}

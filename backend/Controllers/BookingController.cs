@@ -25,12 +25,12 @@ namespace Backend.Controllers
 
 		[HttpGet]
 		[Authorize(Roles = "Backoffice")]
-		 [HttpGet]
-        public async Task<ActionResult<List<Booking>>> GetAll()
-        {
-            var bookings = await _service.GetAllAsync();
-            return Ok(bookings);
-        }
+		[HttpGet]
+		public async Task<ActionResult<List<Booking>>> GetAll()
+		{
+			var bookings = await _service.GetAllAsync();
+			return Ok(bookings);
+		}
 
 		[HttpGet("{id}")]
 		[Authorize(Roles = "Owner,Operator,Backoffice")]
@@ -45,8 +45,12 @@ namespace Backend.Controllers
 		public async Task<IActionResult> GetByOwner(string nic) => Ok(await _service.GetByOwnerAsync(nic));
 
 		[HttpGet("station/{stationId}")]
-		[Authorize(Roles = "Operator,Backoffice")]
-		public async Task<IActionResult> GetByStation(string stationId) => Ok(await _service.GetByStationAsync(stationId));
+		[AllowAnonymous] // or [Authorize] if needed
+		public async Task<IActionResult> GetByStation(string stationId)
+		{
+			var bookings = await _service.GetByStationAsync(stationId);
+			return Ok(bookings);
+		}
 
 		[HttpPut("{id}")]
 		[Authorize(Roles = "Owner,Operator,Backoffice")]
