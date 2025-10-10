@@ -131,7 +131,7 @@ export default function BookingsSummary() {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex gap-2">
                         <button
-                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-all shadow-sm hover:shadow-md cursor-pointer"
+                          className="px-4 py-2 bg-[#347928] text-white hover:bg-green-800 text-sm rounded-lg transition-all shadow-sm hover:shadow-md cursor-pointer"
                           onClick={async () => {
                             try {
                               const start = new Date(b.startTimeUtc);

@@ -122,13 +122,13 @@ export default function StationComponent({
       {currentStation && (
         <div className="mt-3 flex gap-2">
           <button
-            className="px-3 py-1 bg-blue-600 text-white rounded"
+            className="px-3 py-1 bg-[#347928] text-white hover:bg-green-800 rounded-lg"
             onClick={() => changeSlots(+1)}
           >
             + Slot
           </button>
           <button
-            className="px-3 py-1 bg-blue-600 text-white rounded"
+            className="px-3 py-1 bg-[#347928] text-white hover:bg-green-800 rounded-lg"
             onClick={() => changeSlots(-1)}
           >
             - Slot
