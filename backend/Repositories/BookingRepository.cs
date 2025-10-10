@@ -18,7 +18,13 @@ namespace Backend.Repositories
     _collection = context.GetCollection<Booking>("bookings");
 }
 
-        public async Task<List<Booking>> GetAllAsync()
+public Task<List<Booking>> GetByStationsAsync(List<string> stationIds)
+{
+    var filter = Builders<Booking>.Filter.In(b => b.StationId, stationIds);
+    return _collection.Find(filter).ToListAsync();
+}
+
+		public async Task<List<Booking>> GetAllAsync()
 		{
 			return await _collection.Find(_ => true).ToListAsync();
 		}

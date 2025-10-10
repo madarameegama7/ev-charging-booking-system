@@ -108,7 +108,39 @@ export default function UsersOverview() {
               <Users className="text-blue-500" size={32} />
             </div>
           </div>
-            
+            {/* Show temporary password inline when available */}
+            {tempPassword && (
+              <div className="mt-4 p-4 bg-yellow-50 border-l-4 border-yellow-400 rounded">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-yellow-800">Temporary password created</p>
+                    <p className="font-mono text-lg mt-1 text-gray-900">{tempPassword}</p>
+                    <p className="text-xs text-gray-600 mt-1">Share this with the user and advise them to change it on first login.</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      className="px-3 py-2 bg-gray-200 rounded"
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(tempPassword);
+                          alert('Copied to clipboard');
+                        } catch (e) {
+                          alert('Copy failed');
+                        }
+                      }}
+                    >
+                      Copy
+                    </button>
+                    <button
+                      className="px-3 py-2 bg-red-100 text-red-700 rounded"
+                      onClick={() => setTempPassword(null)}
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
         </div>
 
         {/* Total Operators */}

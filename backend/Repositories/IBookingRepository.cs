@@ -15,7 +15,7 @@ namespace Backend.Repositories
 		Task<List<Booking>> GetByStationLooseAsync(string stationId, string? stationName);
 		Task<Booking?> UpdateAsync(string id, Booking update);
 		Task<bool> HasActiveBookingsForStationAsync(string stationId);
-	
+		
 
 	}
 }

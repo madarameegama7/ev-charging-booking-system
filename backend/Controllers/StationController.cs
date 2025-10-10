@@ -14,10 +14,12 @@ namespace Backend.Controllers
 		private readonly IStationService _service;
 		public StationController(IStationService service) { _service = service; }
 
+        //get all stations
 		[HttpGet]
 		[AllowAnonymous]
 		public async Task<IActionResult> GetAll() => Ok(await _service.GetAllAsync());
 
+        //get station by id
 		[HttpGet("{id}")]
 		[AllowAnonymous]
 		public async Task<IActionResult> GetById(string id)
@@ -25,6 +27,7 @@ namespace Backend.Controllers
 			var s = await _service.GetByIdAsync(id);
 			return s is null ? NotFound() : Ok(s);
 		}
+		//get station by stationId
 		[HttpGet("byStationId/{stationId}")]
 		[AllowAnonymous]
 		public async Task<IActionResult> GetByStationId(string stationId)
@@ -33,7 +36,7 @@ namespace Backend.Controllers
 			return s is null ? NotFound() : Ok(s);
 		}
 
-
+		//create station
 		[HttpPost]
 		[Authorize(Roles = "Backoffice")]
 		public async Task<IActionResult> Create([FromBody] Station station)
@@ -42,6 +45,7 @@ namespace Backend.Controllers
 			return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
 		}
 
+		//update station
 		[HttpPut("{id}")]
 		[Authorize(Roles = "Backoffice,Operator")]
 		public async Task<IActionResult> Update(string id, [FromBody] Station update)
@@ -49,7 +53,7 @@ namespace Backend.Controllers
 			var updated = await _service.UpdateAsync(id, update);
 			return updated is null ? NotFound() : Ok(updated);
 		}
-
+		//activate/deactivate station
 		[HttpPatch("{id}/status")]
 		[Authorize(Roles = "Backoffice")]
 		public async Task<IActionResult> SetActive(string id, [FromQuery] bool isActive)
