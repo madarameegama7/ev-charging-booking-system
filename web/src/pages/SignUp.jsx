@@ -14,7 +14,7 @@ export default function SignUp() {
   const [nic, setNic] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [role, setRole] = useState("Operator"); // Add role state
+  const [role, setRole] = useState("Operator"); 
   const [agreeToTerms, setAgreeToTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -224,7 +224,6 @@ export default function SignUp() {
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:border-black focus:outline-none hover:border-gray-400"
               >
                 <option value="Operator">Station Operator</option>
-                <option value="Backoffice">Backoffice</option>
               </select>
             </div>
 
