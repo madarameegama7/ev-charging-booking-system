@@ -75,19 +75,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Role */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700">Role</label>
-              <select
-                className="w-full border border-gray-300 rounded-lg px-3 py-2"
-                value={role}
-                onChange={(e)=>setRole(e.target.value)}
-              >
-                <option value="Backoffice">Backoffice</option>
-                <option value="Operator">Operator</option>
-              </select>
-            </div>
-
             {/*Password*/}
             <div>
               <div className="flex items-center justify-between">
