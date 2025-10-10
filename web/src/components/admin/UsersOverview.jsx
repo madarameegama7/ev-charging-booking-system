@@ -18,12 +18,25 @@ import {
 export default function UsersOverview() {
   const [users, setUsers] = useState([]);
   const [creating, setCreating] = useState(false);
+  const [tempPassword, setTempPassword] = useState(null);
   const [form, setForm] = useState({
     nic: "",
     role: "Operator",
     isActive: true,
+    password: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: ""
   });
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Auto-dismiss temp password toast after 30s
+  useEffect(() => {
+    if (!tempPassword) return;
+    const t = setTimeout(() => setTempPassword(null), 30000);
+    return () => clearTimeout(t);
+  }, [tempPassword]);
 
   useEffect(() => {
     (async () => {
@@ -44,6 +57,42 @@ export default function UsersOverview() {
 
   return (
     <div className="flex flex-col gap-8">
+      {/* Temp password toast (top-right) */}
+      {tempPassword && (
+        <div className="fixed top-6 right-6 z-50">
+          <div className="max-w-sm w-full bg-white shadow-lg rounded-lg border border-gray-200 overflow-hidden">
+            <div className="p-4 flex items-start gap-4">
+              <div className="flex-1">
+                <div className="text-sm text-gray-500">Temporary password created</div>
+                <div className="mt-2 font-mono text-lg text-gray-900">{tempPassword}</div>
+                <div className="text-xs text-gray-500 mt-1">Share with the user and advise changing it on first login.</div>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <button
+                  className="px-3 py-1 bg-gray-100 rounded text-sm"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(tempPassword);
+                      // small visual feedback
+                      alert('Copied to clipboard');
+                    } catch (e) {
+                      alert('Copy failed');
+                    }
+                  }}
+                >
+                  Copy
+                </button>
+                <button
+                  className="px-3 py-1 bg-red-100 text-red-700 rounded text-sm"
+                  onClick={() => setTempPassword(null)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* EV Owners */}
@@ -59,6 +108,7 @@ export default function UsersOverview() {
               <Users className="text-blue-500" size={32} />
             </div>
           </div>
+            
         </div>
 
         {/* Total Operators */}
@@ -132,6 +182,28 @@ export default function UsersOverview() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
+                  First name
+                </label>
+                <input
+                  className="w-full border border-gray-300 rounded-lg p-3  outline-none transition-all"
+                  placeholder="First name"
+                  value={form.firstName}
+                  onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Last name
+                </label>
+                <input
+                  className="w-full border border-gray-300 rounded-lg p-3  outline-none transition-all"
+                  placeholder="Last name"
+                  value={form.lastName}
+                  onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Role
                 </label>
                 <select
@@ -162,17 +234,23 @@ export default function UsersOverview() {
               <div className="flex items-end gap-2">
                 <button
                   className="flex-1 bg-[#347928] hover:bg-green-800 text-white px-4 py-3 rounded-lg font-medium transition-all shadow-sm hover:shadow-md cursor-pointer"
-                  onClick={async () => {
-                    try {
-                      await createUser(form);
-                      const data = await listUsers();
-                      setUsers(data);
-                      setCreating(false);
-                      setForm({ nic: "", role: "Operator", isActive: true });
-                    } catch (e) {
-                      alert(e.message);
-                    }
-                  }}
+                    onClick={async () => {
+                      try {
+                        const resp = await createUser(form);
+                        const data = await listUsers();
+                        setUsers(data);
+                        setCreating(false);
+                        // Store temporary password if server generated one so we can show it inline
+                        if (resp && resp.tempPassword) {
+                          setTempPassword(resp.tempPassword);
+                        } else {
+                          setTempPassword(null);
+                        }
+                        setForm({ nic: "", role: "Operator", isActive: true, password: "", firstName: "", lastName: "", email: "", phone: "" });
+                      } catch (e) {
+                        alert(e.message);
+                      }
+                    }}
                 >
                   Save
                 </button>
