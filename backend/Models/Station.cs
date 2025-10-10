@@ -18,11 +18,14 @@ namespace Backend.Models
 		[BsonRepresentation(BsonType.ObjectId)]
 		public string? Id { get; set; }
 
-		[BsonElement("name")] public string Name { get; set; }
+	[BsonElement("name")] public string? Name { get; set; }
 		[BsonElement("location")] public GeoLocation Location { get; set; } = new GeoLocation();
-		[BsonElement("type")] public string Type { get; set; }
+	[BsonElement("type")] public string? Type { get; set; }
 		[BsonElement("availableSlots")] public int AvailableSlots { get; set; }
 		[BsonElement("isActive")] public bool IsActive { get; set; } = true;
+
+		// Nic of the assigned operator (optional). Backoffice can assign an operator to a station.
+		[BsonElement("operatorNic")] public string? OperatorNic { get; set; }
 	}
 }
 
