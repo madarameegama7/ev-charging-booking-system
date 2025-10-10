@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Backend.Models;
 using Backend.Services;
 using MongoDB.Driver;
+using Backend.Utils;
 
 namespace Backend.Controllers
 {
@@ -34,15 +35,27 @@ namespace Backend.Controllers
 
 		//Create user with NIC and role. Bootstrap rule: if no users exist yet,
 		//allow anonymous creation but only for a Backoffice user. Otherwise requires Backoffice role
+		public class CreateUserRequest
+		{
+			public string? NIC { get; set; }
+			public string? Role { get; set; }
+			public bool IsActive { get; set; } = true;
+			public string? Password { get; set; }
+			public string? FirstName { get; set; }
+			public string? LastName { get; set; }
+			public string? Email { get; set; }
+			public string? Phone { get; set; }
+		}
+
 		[HttpPost]
-		public async Task<IActionResult> Create([FromBody] User user)
+		public async Task<IActionResult> Create([FromBody] CreateUserRequest req)
 		{
 			var count = await _userService.CountAsync();
 			
 			// Bootstrap: if no users exist, allow creation of first Backoffice user
 			if (count == 0)
 			{
-				if (!string.Equals(user.Role, "Backoffice", StringComparison.OrdinalIgnoreCase))
+				if (!string.Equals(req.Role ?? string.Empty, "Backoffice", StringComparison.OrdinalIgnoreCase))
 				{
 					return BadRequest("First account must be a Backoffice user.");
 				}
@@ -59,8 +72,39 @@ namespace Backend.Controllers
 
 			try
 			{
-				var created = await _userService.CreateAsync(user);
-				return CreatedAtAction(nameof(GetByNic), new { nic = created.NIC }, created);
+				// Validate minimal fields
+				if (string.IsNullOrWhiteSpace(req.NIC) || string.IsNullOrWhiteSpace(req.Role))
+					return BadRequest("NIC and Role are required.");
+
+				// Map to User model
+				var newUser = new User
+				{
+					NIC = req.NIC,
+					Name = string.IsNullOrWhiteSpace(req.FirstName) && string.IsNullOrWhiteSpace(req.LastName)
+						? ""
+						: $"{req.FirstName ?? ""} {req.LastName ?? ""}".Trim(),
+					Email = req.Email ?? "",
+					Phone = req.Phone ?? "",
+					Role = req.Role,
+					IsActive = req.IsActive
+				};
+
+				// Handle password: if missing, generate a temporary one
+				string? tempPassword = null;
+				if (string.IsNullOrWhiteSpace(req.Password))
+				{
+					tempPassword = System.Guid.NewGuid().ToString("N").Substring(0, 10);
+					newUser.PasswordHash = PasswordHelper.HashPassword(tempPassword);
+				}
+				else
+				{
+					newUser.PasswordHash = PasswordHelper.HashPassword(req.Password);
+				}
+
+				var created = await _userService.CreateAsync(newUser);
+
+				// Return created user and expose temp password if generated
+				return CreatedAtAction(nameof(GetByNic), new { nic = created.NIC }, new { created, tempPassword });
 			}
 			catch (MongoWriteException ex) when (ex.WriteError?.Category == ServerErrorCategory.DuplicateKey)
 			{
