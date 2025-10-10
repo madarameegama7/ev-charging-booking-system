@@ -12,6 +12,7 @@ namespace Backend.Repositories
 		Task<Station?> GetByIdAsync(string id);
 		Task<Station> CreateAsync(Station station);
 		Task<Station?> UpdateAsync(string id, Station update);
+		Task<Station?> GetByStationIdAsync(string stationId);
 	}
 }
 

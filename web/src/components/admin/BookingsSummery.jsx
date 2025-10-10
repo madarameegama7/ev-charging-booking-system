@@ -28,7 +28,16 @@ export default function BookingsSummary() {
   ];
 
   const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
+    // Normalize numeric enum values or string values to a lowercase status string
+    let s = status;
+    if (typeof s === "number") {
+      // BookingStatus: Pending=0, Approved=1, Cancelled=2, Completed=3
+      s = ["pending", "approved", "cancelled", "completed"][s] ?? String(s);
+    }
+    s = (s ?? "").toString().toLowerCase();
+
+    switch (s) {
+      case "approved":
       case "confirmed":
         return "bg-green-100 text-green-800";
       case "pending":
@@ -40,6 +49,16 @@ export default function BookingsSummary() {
       default:
         return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const formatStatus = (status) => {
+    if (typeof status === "number") {
+      return ["Pending", "Approved", "Cancelled", "Completed"][status] ?? String(status);
+    }
+    if (!status) return "";
+    // capitalize
+    const s = status.toString();
+    return s.charAt(0).toUpperCase() + s.slice(1);
   };
 
   return (
@@ -106,7 +125,7 @@ export default function BookingsSummary() {
                           b.status
                         )}`}
                       >
-                        {b.status}
+                        {formatStatus(b.status)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

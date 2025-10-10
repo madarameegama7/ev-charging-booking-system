@@ -4,18 +4,29 @@
 using Backend.Data;
 using Backend.Models;
 using MongoDB.Driver;
+using System.Text.RegularExpressions;
 
 namespace Backend.Repositories
 {
 	public class BookingRepository : IBookingRepository
 	{
 		private const string CollectionName = "bookings";
-		private readonly IMongoCollection<Booking> _collection;
-		public Task<List<Booking>> GetAllAsync() => _collection.Find(_ => true).ToListAsync();
-
+		private readonly IMongoCollection<Booking> _collection;   
+		
 		public BookingRepository(MongoContext context)
+{
+    _collection = context.GetCollection<Booking>("bookings");
+}
+
+public Task<List<Booking>> GetByStationsAsync(List<string> stationIds)
+{
+    var filter = Builders<Booking>.Filter.In(b => b.StationId, stationIds);
+    return _collection.Find(filter).ToListAsync();
+}
+
+		public async Task<List<Booking>> GetAllAsync()
 		{
-			_collection = context.GetCollection<Booking>(CollectionName);
+			return await _collection.Find(_ => true).ToListAsync();
 		}
 
 		public async Task<Booking> CreateAsync(Booking booking)
@@ -24,11 +35,30 @@ namespace Backend.Repositories
 			return booking;
 		}
 
-		public Task<Booking?> GetByIdAsync(string id) => _collection.Find(b => b.Id == id).FirstOrDefaultAsync();
+		public async Task<Booking?> GetByIdAsync(string id)
+		{
+			return await _collection.Find(b => b.Id == id).FirstOrDefaultAsync();
+		}
 
 		public Task<List<Booking>> GetByOwnerAsync(string nic) => _collection.Find(b => b.OwnerNIC == nic).ToListAsync();
 
 		public Task<List<Booking>> GetByStationAsync(string stationId) => _collection.Find(b => b.StationId == stationId).ToListAsync();
+
+		public Task<List<Booking>> GetByStationLooseAsync(string stationId, string? stationName)
+		{
+			// Match bookings where StationId equals the id, or equals the station name (legacy), or contains it.
+			var filters = new List<FilterDefinition<Booking>>();
+			filters.Add(Builders<Booking>.Filter.Eq(b => b.StationId, stationId));
+			if (!string.IsNullOrWhiteSpace(stationName))
+			{
+				// case-insensitive match on station name
+				var esc = Regex.Escape(stationName);
+				filters.Add(Builders<Booking>.Filter.Regex("stationId", new MongoDB.Bson.BsonRegularExpression($"^{esc}$", "i")));
+				filters.Add(Builders<Booking>.Filter.Regex("stationId", new MongoDB.Bson.BsonRegularExpression(esc, "i")));
+			}
+			var combined = Builders<Booking>.Filter.Or(filters);
+			return _collection.Find(combined).ToListAsync();
+		}
 
 		public async Task<Booking?> UpdateAsync(string id, Booking update)
 		{

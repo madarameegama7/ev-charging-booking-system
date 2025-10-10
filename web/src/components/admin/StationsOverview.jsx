@@ -1,21 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { MapPin, Plus, X } from 'lucide-react';
 import { listStations, createStation, updateStation, setStationActive } from '../../api/stations';
+import { listUsers } from '../../api/users';
 import MapPicker from '../MapPicker';
 
 export default function StationsOverview() {
   const [stations, setStations] = useState([]);
   const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState({ name:'', type:'AC', availableSlots:1, location: { lat: 0, lng: 0 } });
+  const [operators, setOperators] = useState([]);
+  const [form, setForm] = useState({ name:'', type:'AC', availableSlots:1, location: { lat: 0, lng: 0 }, operatorNic: '' });
 
   useEffect(()=>{
     (async()=>{
       const data = await listStations();
       setStations(data);
+      // load operators so admin can assign them to stations
+      try {
+        const users = await listUsers();
+        setOperators(users.filter(u => (u.role || u.Role) === 'Operator'));
+      } catch (e) {
+        console.warn('Failed to load operators', e);
+      }
     })();
   },[]);
 
-  const columns = ["Name", "Type", "Slots", "Active", "Actions"];
+  const columns = ["Name", "Type", "Operator", "Slots", "Active", "Actions"];
 
   return (
     <div className="w-full space-y-6">
@@ -63,6 +72,9 @@ export default function StationsOverview() {
                       <span className="text-sm text-gray-900">{s.type}</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="text-sm text-gray-900">{s.operatorNic ?? '-'}</span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm text-gray-900">{s.availableSlots}</span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -81,7 +93,7 @@ export default function StationsOverview() {
                         <button
                           className="px-4 py-2 bg-[#347928] hover:bg-green-800 text-white text-sm rounded-lg transition-all shadow-sm hover:shadow-md cursor-pointer"
                           onClick={async () => {
-                            const payload = { ...s, availableSlots: s.availableSlots };
+                            const payload = { ...s, availableSlots: s.availableSlots, operatorNic: s.operatorNic };
                             await updateStation(s.id, payload);
                             const data = await listStations();
                             setStations(data);
@@ -109,7 +121,7 @@ export default function StationsOverview() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center">
+                  <td colSpan={6} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center text-gray-400">
                       <MapPin size={48} className="mb-4" />
                       <p className="text-lg font-medium">No stations found</p>
@@ -220,6 +232,21 @@ export default function StationsOverview() {
                   Selected coordinates: <span className="font-medium">{form.location.lat.toFixed(6)}, {form.location.lng.toFixed(6)}</span>
                 </div>
               </div>
+
+              {/* Assign Operator */}
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Assign Operator</label>
+                <select
+                  className="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-[#347928] focus:border-transparent outline-none transition-all cursor-pointer"
+                  value={form.operatorNic}
+                  onChange={(e) => setForm({ ...form, operatorNic: e.target.value })}
+                >
+                  <option value="">Unassigned</option>
+                  {operators.map((o) => (
+                    <option key={(o.nic ?? o.NIC)} value={(o.nic ?? o.NIC)}>{(o.name ?? `${o.firstName || ''} ${o.lastName || ''}`.trim()) || (o.nic ?? o.NIC)}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             {/* Modal Footer */}
@@ -228,7 +255,7 @@ export default function StationsOverview() {
                 className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-6 py-3 rounded-lg font-medium transition-all cursor-pointer"
                 onClick={() => {
                   setCreating(false);
-                  setForm({ name:'', type:'AC', availableSlots:1, location: { lat: 0, lng: 0 } });
+                  setForm({ name:'', type:'AC', availableSlots:1, location: { lat: 0, lng: 0 }, operatorNic: '' });
                 }}
               >
                 Cancel
@@ -245,11 +272,11 @@ export default function StationsOverview() {
                       alert("Available slots must be at least 1");
                       return;
                     }
-                    await createStation(form);
+                    await createStation({ ...form });
                     const data = await listStations();
                     setStations(data);
                     setCreating(false);
-                    setForm({ name:'', type:'AC', availableSlots:1, location: { lat: 0, lng: 0 } });
+                    setForm({ name:'', type:'AC', availableSlots:1, location: { lat: 0, lng: 0 }, operatorNic: '' });
                   } catch (e) {
                     alert(e.message);
                   }

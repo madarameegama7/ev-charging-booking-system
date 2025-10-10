@@ -152,12 +152,20 @@ export default function Profile() {
               <h2 className="text-2xl font-bold text-gray-900">Profile Information</h2>
             </div>
             {!isEditing && (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="px-4 py-2 bg-[#347928] text-white rounded-lg hover:bg-[#347928]/90 transition-colors cursor-pointer"
-              >
-                Edit Profile
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="px-4 py-2 bg-[#347928] text-white rounded-lg hover:bg-[#347928]/90 transition-colors cursor-pointer"
+                >
+                  Edit Profile
+                </button>
+                <button
+                  onClick={() => navigate('/change-password')}
+                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors text-gray-700"
+                >
+                  Change password
+                </button>
+              </div>
             )}
           </div>
 
