@@ -16,19 +16,18 @@
         android:layout_gravity="center_horizontal"
         android:paddingBottom="24dp" />
 
-    <Button
-        android:id="@+id/btnManageStations"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Manage Charging Stations"
-        android:layout_marginBottom="16dp" />
-
-    <Button
+    <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/btnViewReservations"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="View Reservations"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="16dp"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:background="@drawable/button_primary_selector"
+        android:elevation="2dp"
+        android:stateListAnimator="@null"/>
 
     <Button
         android:id="@+id/btnLogout"

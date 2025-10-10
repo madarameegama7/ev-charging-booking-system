@@ -20,7 +20,6 @@ public class EVOperatorDashboardActivity extends AppCompatActivity {
         setContentView(R.layout.activity_evoperator_dashboard);
 
         tvWelcome = findViewById(R.id.tvWelcome);
-        btnManageStations = findViewById(R.id.btnManageStations);
         btnViewReservations = findViewById(R.id.btnViewReservations);
         btnLogout = findViewById(R.id.btnLogout);
 

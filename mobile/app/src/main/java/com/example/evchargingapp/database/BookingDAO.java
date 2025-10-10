@@ -23,6 +23,11 @@ public class BookingDAO {
     public void close() { dbHelper.close(); }
 
     public long insertOrUpdateBooking(Booking booking) {
+        // Ensure DB is open
+        if (database == null || !database.isOpen()) {
+            open();
+        }
+
         ContentValues values = new ContentValues();
         values.put(BookingDatabaseHelper.COLUMN_BOOKING_ID, booking.getBookingId());
         values.put(BookingDatabaseHelper.COLUMN_STATION_ID, booking.getStationId());
@@ -40,6 +45,11 @@ public class BookingDAO {
     }
 
     public List<Booking> getBookingsByOwner(String nic) {
+        // Ensure DB is open
+        if (database == null || !database.isOpen()) {
+            open();
+        }
+
         List<Booking> list = new ArrayList<>();
         Cursor cursor = database.query(
                 BookingDatabaseHelper.TABLE_BOOKING,
@@ -49,23 +59,33 @@ public class BookingDAO {
                 null, null, BookingDatabaseHelper.COLUMN_START + " ASC"
         );
 
-        if (cursor != null && cursor.moveToFirst()) {
-            do {
-                Booking b = new Booking();
-                b.setBookingId(cursor.getString(cursor.getColumnIndexOrThrow(BookingDatabaseHelper.COLUMN_BOOKING_ID)));
-                b.setStationId(cursor.getString(cursor.getColumnIndexOrThrow(BookingDatabaseHelper.COLUMN_STATION_ID)));
-                b.setOwnerNic(cursor.getString(cursor.getColumnIndexOrThrow(BookingDatabaseHelper.COLUMN_OWNER_NIC)));
-                b.setStartTimeUtc(cursor.getString(cursor.getColumnIndexOrThrow(BookingDatabaseHelper.COLUMN_START)));
-                b.setEndTimeUtc(cursor.getString(cursor.getColumnIndexOrThrow(BookingDatabaseHelper.COLUMN_END)));
-                b.setStatus(cursor.getString(cursor.getColumnIndexOrThrow(BookingDatabaseHelper.COLUMN_STATUS)));
-                list.add(b);
-            } while (cursor.moveToNext());
-            cursor.close();
+        if (cursor != null) {
+            try {
+                if (cursor.moveToFirst()) {
+                    do {
+                        Booking b = new Booking();
+                        b.setBookingId(cursor.getString(cursor.getColumnIndexOrThrow(BookingDatabaseHelper.COLUMN_BOOKING_ID)));
+                        b.setStationId(cursor.getString(cursor.getColumnIndexOrThrow(BookingDatabaseHelper.COLUMN_STATION_ID)));
+                        b.setOwnerNic(cursor.getString(cursor.getColumnIndexOrThrow(BookingDatabaseHelper.COLUMN_OWNER_NIC)));
+                        b.setStartTimeUtc(cursor.getString(cursor.getColumnIndexOrThrow(BookingDatabaseHelper.COLUMN_START)));
+                        b.setEndTimeUtc(cursor.getString(cursor.getColumnIndexOrThrow(BookingDatabaseHelper.COLUMN_END)));
+                        b.setStatus(cursor.getString(cursor.getColumnIndexOrThrow(BookingDatabaseHelper.COLUMN_STATUS)));
+                        list.add(b);
+                    } while (cursor.moveToNext());
+                }
+            } finally {
+                cursor.close();
+            }
         }
         return list;
     }
 
     public void deleteAllBookings() {
+        // Ensure DB is open
+        if (database == null || !database.isOpen()) {
+            open();
+        }
+
         database.delete(BookingDatabaseHelper.TABLE_BOOKING, null, null);
     }
 }

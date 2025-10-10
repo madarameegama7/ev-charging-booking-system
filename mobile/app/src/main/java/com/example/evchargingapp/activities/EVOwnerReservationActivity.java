@@ -5,6 +5,7 @@ import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -47,36 +48,39 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_evowner_reservation);
+        try {
+            setContentView(R.layout.activity_evowner_reservation);
 
-        btnAddBooking = findViewById(R.id.btnAddBooking);
-        rvBookings = findViewById(R.id.rvBookings);
-        progressBar = findViewById(R.id.progressBar);
-        tabLayout = findViewById(R.id.tabLayout);
+            btnAddBooking = findViewById(R.id.btnAddBooking);
+            rvBookings = findViewById(R.id.rvBookings);
+            progressBar = findViewById(R.id.progressBar);
+            tabLayout = findViewById(R.id.tabLayout);
 
-        rvBookings.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new BookingAdapter(this, displayedList, new BookingAdapter.BookingListener() {
-            @Override
-            public void onModify(Booking booking) { showBookingForm(booking); }
-            @Override
-            public void onCancel(Booking booking) { showCancelConfirmation(booking); }
-            @Override
-            public void onShowQR(Booking booking) { showQrDialog(booking.getBookingId()); }
-        });
-        rvBookings.setAdapter(adapter);
+            rvBookings.setLayoutManager(new LinearLayoutManager(this));
+            adapter = new BookingAdapter(this, displayedList, new BookingAdapter.BookingListener() {
+                @Override public void onModify(Booking booking) { showBookingForm(booking); }
+                @Override public void onCancel(Booking booking) { showCancelConfirmation(booking); }
+                @Override public void onShowQR(Booking booking) { showQrDialog(booking.getBookingId()); }
+            });
+            rvBookings.setAdapter(adapter);
 
-        btnAddBooking.setOnClickListener(v -> showBookingForm(null));
+            btnAddBooking.setOnClickListener(v -> showBookingForm(null));
 
-        tabLayout.addTab(tabLayout.newTab().setText("Upcoming"));
-        tabLayout.addTab(tabLayout.newTab().setText("Past"));
+            tabLayout.addTab(tabLayout.newTab().setText("Upcoming"));
+            tabLayout.addTab(tabLayout.newTab().setText("Past"));
 
-        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-            @Override public void onTabSelected(TabLayout.Tab tab) { filterBookings(tab.getPosition() == 0); }
-            @Override public void onTabUnselected(TabLayout.Tab tab) {}
-            @Override public void onTabReselected(TabLayout.Tab tab) {}
-        });
+            tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+                @Override public void onTabSelected(TabLayout.Tab tab) { filterBookings(tab.getPosition() == 0); }
+                @Override public void onTabUnselected(TabLayout.Tab tab) {}
+                @Override public void onTabReselected(TabLayout.Tab tab) {}
+            });
 
-        fetchBookings();
+            fetchBookings();
+
+        } catch (Exception e) {
+            e.printStackTrace(); // This will show the crash reason in Logcat
+            Toast.makeText(this, "Error in onCreate: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private void filterBookings(boolean upcoming) {
@@ -90,6 +94,10 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
             } catch (Exception ignored) {}
         }
         adapter.notifyDataSetChanged();
+        if (displayedList.isEmpty()) {
+            Toast.makeText(this, "No bookings found", Toast.LENGTH_SHORT).show();
+        }
+
     }
 
     // Booking form, create / modify
@@ -156,6 +164,8 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
     private void fetchBookings() {
         String nic = SharedPrefsHelper.getNic(this);
         String token = SharedPrefsHelper.getToken(this);
+        Log.d("EVOwnerReservation", "NIC=" + nic + ", Token=" + token);
+
         toggleLoading(true);
         executor.execute(() -> {
             BookingDAO bookingDAO = new BookingDAO(this);
