@@ -4,6 +4,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -21,6 +24,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Start rotation animation
+        ImageView imgLogo = findViewById(R.id.imgLogo);
+        Animation rotate = AnimationUtils.loadAnimation(this, R.anim.rotate_logo);
+        imgLogo.startAnimation(rotate);
+
         // Delay then navigate
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             String token = SharedPrefsHelper.getToken(getApplicationContext());
@@ -28,22 +36,19 @@ public class MainActivity extends AppCompatActivity {
 
             Intent intent;
             if (token != null && !token.isEmpty()) {
-                // User already logged in, check role
                 if ("Owner".equalsIgnoreCase(role)) {
                     intent = new Intent(MainActivity.this, EVOwnerDashboardActivity.class);
                 } else if ("Operator".equalsIgnoreCase(role)) {
                     intent = new Intent(MainActivity.this, EVOperatorDashboardActivity.class);
                 } else {
-                    // Unknown role, fallback to login
                     intent = new Intent(MainActivity.this, LoginActivity.class);
                 }
             } else {
-                // Not logged in, go to Login screen
                 intent = new Intent(MainActivity.this, LoginActivity.class);
             }
 
             startActivity(intent);
-            finish(); // close splash so user can't go back to it
+            finish();
         }, SPLASH_DURATION);
     }
 }

@@ -36,6 +36,14 @@ public class RegisterActivity extends AppCompatActivity {
         btnRegister = findViewById(R.id.btnRegister);
         progressBar = findViewById(R.id.progressBar);
 
+        // NEW: Back button
+        ImageView btnBack = findViewById(R.id.btnBack);
+        btnBack.setOnClickListener(v -> finish());
+
+        // NEW: Already have account link
+        TextView tvLogin = findViewById(R.id.tvLogin);
+        tvLogin.setOnClickListener(v -> finish());
+
         btnRegister.setOnClickListener(v -> attemptRegister());
     }
 

@@ -7,10 +7,19 @@
 
 package com.example.evchargingapp.api;
 
+import android.content.Context;
+
+import com.example.evchargingapp.utils.SharedPrefsHelper;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class BookingApi {
+    private static Context context;
+
+    public BookingApi(Context ctx) {
+        context = ctx;
+    }
 
     public static JSONObject createBooking(String stationId, String ownerNic,
                                            String start, String end, String token) throws Exception {
@@ -39,4 +48,15 @@ public class BookingApi {
         String response = ApiClient.put("booking/" + id, update.toString(), token);
         return new JSONObject(response);
     }
+
+    public static boolean cancelBooking(String bookingId) {
+        try {
+            String token = SharedPrefsHelper.getToken(context);
+            JSONObject update = new JSONObject();
+            update.put("status", "Cancelled");
+            updateBooking(bookingId, update, token);
+            return true;
+        } catch (Exception e) { return false; }
+    }
+
 }
