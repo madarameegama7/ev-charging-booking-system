@@ -33,7 +33,7 @@ namespace Backend.Models
         // Static method to generate a unique StationId
         private static string GenerateStationId()
         {
-            // Example format: ST-20251010-AB12F3 (Date + Random)
+            // format: ST-20251010-AB12F3 (Date + Random)
             string randomPart = Guid.NewGuid().ToString("N").Substring(0, 5).ToUpper();
             string datePart = DateTime.UtcNow.ToString("yyyyMMdd");
             return $"ST-{datePart}-{randomPart}";
