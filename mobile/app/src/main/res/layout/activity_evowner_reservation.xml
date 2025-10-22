@@ -4,50 +4,184 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@android:color/white"
-    android:padding="16dp">
+    android:background="@drawable/bg_gradient_login">
 
-    <!-- Add Reservation Button -->
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/btnAddBooking"
+    <!-- Header Section -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Add Reservation"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        android:textColor="@color/white"
-        android:background="@drawable/button_primary_selector"
-        android:elevation="2dp"
-        android:stateListAnimator="@null" />
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:gravity="center">
 
-    <!-- Tabs for Upcoming / Past -->
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tabLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:background="@android:color/white"
-        app:tabIndicatorColor="@android:color/holo_purple"
-        app:tabSelectedTextColor="@android:color/holo_purple"
-        app:tabTextColor="@android:color/darker_gray" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="My Reservations"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="@color/gray_900"/>
 
-    <!-- RecyclerView for Bookings -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvBookings"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Manage your charging bookings"
+            android:textSize="14sp"
+            android:textColor="@color/gray_600"
+            android:layout_marginTop="4dp"/>
+    </LinearLayout>
+
+    <!-- Main Content Card -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:paddingTop="12dp"
-        android:clipToPadding="false"
-        android:scrollbars="vertical" />
+        android:orientation="vertical"
+        android:background="@drawable/bg_card"
+        android:elevation="8dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:padding="16dp">
 
-    <!-- Progress Bar -->
-    <ProgressBar
-        android:id="@+id/progressBar"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:layout_gravity="center"
-        android:visibility="gone" />
+        <!-- Add Reservation Button -->
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnAddBooking"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="+ New Reservation"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:background="@drawable/button_primary_selector"
+            android:elevation="2dp"
+            android:stateListAnimator="@null"
+            android:layout_marginBottom="16dp"/>
+
+        <!-- Tabs for Upcoming / Past -->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            app:tabIndicatorColor="@color/primary_green"
+            app:tabSelectedTextColor="@color/primary_green"
+            app:tabTextColor="@color/gray_600"
+            app:tabIndicatorHeight="3dp"
+            app:tabTextAppearance="@style/TabTextStyle"/>
+
+        <!-- RecyclerView for Bookings -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvBookings"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:paddingTop="12dp"
+            android:clipToPadding="false"
+            android:scrollbars="vertical"
+            android:overScrollMode="never"/>
+
+        <!-- Empty State -->
+        <LinearLayout
+            android:id="@+id/emptyState"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:visibility="gone"
+            android:padding="32dp">
+
+            <ImageView
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:src="@drawable/logo"
+                android:alpha="0.3"
+                android:contentDescription="No bookings"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No Reservations Yet"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/gray_700"
+                android:layout_marginTop="16dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tap the button above to create your first reservation"
+                android:textSize="14sp"
+                android:textColor="@color/gray_600"
+                android:textAlignment="center"
+                android:layout_marginTop="8dp"/>
+        </LinearLayout>
+
+        <!-- Progress Bar -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_gravity="center"
+            android:indeterminateTint="@color/primary_green"
+            android:visibility="gone" />
+
+    </LinearLayout>
 
 </LinearLayout>
+
+<!--<?xml version="1.0" encoding="utf-8"?>-->
+<!--<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"-->
+<!--    xmlns:app="http://schemas.android.com/apk/res-auto"-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="match_parent"-->
+<!--    android:orientation="vertical"-->
+<!--    android:background="@android:color/white"-->
+<!--    android:padding="16dp">-->
+
+<!--    &lt;!&ndash; Add Reservation Button &ndash;&gt;-->
+<!--    <androidx.appcompat.widget.AppCompatButton-->
+<!--        android:id="@+id/btnAddBooking"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="Add Reservation"-->
+<!--        android:textSize="16sp"-->
+<!--        android:textStyle="bold"-->
+<!--        android:textColor="@color/white"-->
+<!--        android:background="@drawable/button_primary_selector"-->
+<!--        android:elevation="2dp"-->
+<!--        android:stateListAnimator="@null" />-->
+
+<!--    &lt;!&ndash; Tabs for Upcoming / Past &ndash;&gt;-->
+<!--    <com.google.android.material.tabs.TabLayout-->
+<!--        android:id="@+id/tabLayout"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_marginTop="12dp"-->
+<!--        android:background="@android:color/white"-->
+<!--        app:tabIndicatorColor="@android:color/holo_purple"-->
+<!--        app:tabSelectedTextColor="@android:color/holo_purple"-->
+<!--        app:tabTextColor="@android:color/darker_gray" />-->
+
+<!--    &lt;!&ndash; RecyclerView for Bookings &ndash;&gt;-->
+<!--    <androidx.recyclerview.widget.RecyclerView-->
+<!--        android:id="@+id/rvBookings"-->
+<!--        android:layout_width="match_parent"-->
+<!--        android:layout_height="0dp"-->
+<!--        android:layout_weight="1"-->
+<!--        android:paddingTop="12dp"-->
+<!--        android:clipToPadding="false"-->
+<!--        android:scrollbars="vertical" />-->
+
+<!--    &lt;!&ndash; Progress Bar &ndash;&gt;-->
+<!--    <ProgressBar-->
+<!--        android:id="@+id/progressBar"-->
+<!--        style="?android:attr/progressBarStyleLarge"-->
+<!--        android:layout_width="64dp"-->
+<!--        android:layout_height="64dp"-->
+<!--        android:layout_gravity="center"-->
+<!--        android:visibility="gone" />-->
+
+<!--</LinearLayout>-->
