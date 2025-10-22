@@ -17,6 +17,7 @@ namespace Backend.Services
 			_repo = repo;
 			_stationRepo = stationRepo;
 		}
+		
 
 		public async Task<Booking> CreateAsync(Booking booking)
 		{
@@ -33,9 +34,15 @@ namespace Backend.Services
 			return await _repo.CreateAsync(booking);
 		}
 
+
 		public Task<Booking?> GetByIdAsync(string id) => _repo.GetByIdAsync(id);
 		public Task<List<Booking>> GetByOwnerAsync(string nic) => _repo.GetByOwnerAsync(nic);
-		public Task<List<Booking>> GetByStationAsync(string stationId) => _repo.GetByStationAsync(stationId);
+		public async Task<List<Booking>> GetByStationAsync(string stationId)
+		{
+			var station = await _stationRepo.GetByStationIdAsync(stationId);
+			var stationName = station?.Name;
+			return await _repo.GetByStationLooseAsync(stationId, stationName);
+		}
 
 		public async Task<Booking?> UpdateAsync(string id, Booking update)
 		{

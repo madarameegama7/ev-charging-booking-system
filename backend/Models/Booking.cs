@@ -20,7 +20,6 @@ namespace Backend.Models
 		public string? Id { get; set; }
 
 		[BsonElement("stationId")]
-		[BsonRepresentation(BsonType.ObjectId)]
 		public string StationId { get; set; }
 
 		[BsonElement("ownerNic")]

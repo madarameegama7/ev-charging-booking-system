@@ -35,5 +35,8 @@ namespace Backend.Models
 
 		[BsonElement("passwordHash")]
 		public string PasswordHash { get; set; }
+
+		[BsonElement("forcePasswordChange")]
+		public bool ForcePasswordChange { get; set; } = false;
 	}
 }

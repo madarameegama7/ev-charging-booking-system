@@ -107,15 +107,15 @@ namespace Backend.Controllers
             var inputPassword = request.Password;
             if (string.IsNullOrEmpty(inputPassword))
             {
-                Console.WriteLine("[DEBUG][Login] WARNING: Input Password is null or empty!");
+                //Console.WriteLine("[DEBUG][Login] WARNING: Input Password is null or empty!");
             }
             else
             {
-                Console.WriteLine($"[DEBUG][Login] Input Password (raw): '{inputPassword}' (Length: {inputPassword.Length})");
+                //Console.WriteLine($"[DEBUG][Login] Input Password (raw): '{inputPassword}' (Length: {inputPassword.Length})");
             }
-            Console.WriteLine($"[DEBUG][Login] Stored Hash: {existing.PasswordHash}");
+            //Console.WriteLine($"[DEBUG][Login] Stored Hash: {existing.PasswordHash}");
             var verifyResult = PasswordHelper.VerifyPassword(inputPassword, existing.PasswordHash);
-            Console.WriteLine($"[DEBUG][Login] Verify Result: {verifyResult}");
+
 
             if (!verifyResult)
                 return Unauthorized("Invalid password");
@@ -127,7 +127,7 @@ namespace Backend.Controllers
             var firstName = nameParts.Length > 0 ? nameParts[0] : "";
             var lastName = nameParts.Length > 1 ? nameParts[1] : "";
 
-            return Ok(new { token, role = existing.Role, nic = existing.NIC, firstName = firstName, lastName = lastName });
+            return Ok(new { token, role = existing.Role, nic = existing.NIC, firstName = firstName, lastName = lastName, forcePasswordChange = existing.ForcePasswordChange });
         }
     }
 

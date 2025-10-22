@@ -7,6 +7,7 @@ import {
 import LoginPage from "./pages/LoginPage";
 import SignUp from "./pages/SignUp";
 import Home from "./pages/Home";
+import ChangePassword from "./pages/ChangePassword";
 import Dashboard from "./pages/admin/Dashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleRoute from "./components/RoleRoute";
@@ -23,6 +24,14 @@ export default function App() {
       <Routes>
         <Route
           path="/"
+          element={
+            <Layout>
+              <Home />
+            </Layout>
+          }
+        />
+        <Route
+          path="/home"
           element={
             <Layout>
               <Home />
@@ -48,17 +57,11 @@ export default function App() {
           }
         />
 
-        <Route
-          path="/profile"
-          element={
-            <DashboardLayout>
-              <Profile />
-            </DashboardLayout>
-          }
-        />
+        <Route path="/profile" element={<Profile />} />
 
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUp />} />
+  <Route path="/change-password" element={<ChangePassword />} />
         <Route
           path="/admin/dashboard"
           element={
