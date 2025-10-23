@@ -1,62 +1,80 @@
-/*
- * File: BookingApi.java
- * Purpose: Provides API methods for managing EV charging bookings.
- *           Supports creating new bookings, retrieving bookings
- *           by owner, and updating booking details.
- */
-
 package com.example.evchargingapp.api;
 
 import android.content.Context;
+import android.util.Log;
+import android.widget.Toast;
 
 import com.example.evchargingapp.utils.SharedPrefsHelper;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.util.concurrent.Future;
+
 public class BookingApi {
+
     private static Context context;
 
     public BookingApi(Context ctx) {
         context = ctx;
     }
 
-    public static JSONObject createBooking(String stationId, String ownerNic,
-                                           String start, String end, String token) throws Exception {
-        JSONObject body = new JSONObject();
-        body.put("stationId", stationId);
-        body.put("ownerNic", ownerNic);
-        body.put("startTimeUtc", start);
-        body.put("endTimeUtc", end);
-
-        String response = ApiClient.post("booking", body.toString(), token).get();
+    /**
+     * Create a new booking by sending JSON payload to backend.
+     */
+    public static JSONObject createBooking(JSONObject json, String token) throws Exception {
+        // ApiClient.post returns Future<String>
+        Future<String> futureResponse = ApiClient.post("booking", json.toString(), token);
+        String response = futureResponse.get(); // unwrap Future
+        Log.d("BookingApi", "Response from backend: " + response);
         return new JSONObject(response);
     }
 
+    /**
+     * Fetch all bookings for a given owner NIC.
+     */
     public static JSONArray getBookingsByOwner(String nic, String token) throws Exception {
-        String response = ApiClient.get("booking/owner/" + nic, token).get();
+        Log.d("BookingApi", "Fetching bookings for NIC=" + nic + " | Token=" + token);
+        Future<String> futureResponse = ApiClient.get("booking/owner/" + nic, token);
+        String response = futureResponse.get(); // unwrap Future
+        Log.d("BookingApi", "Response: " + response);
         return new JSONArray(response);
     }
 
+    /**
+     * Fetch all bookings for a given station ID (for operators).
+     */
     public static JSONArray getBookingsByStation(String stationId, String token) throws Exception {
-        // method operator to fetch bookings for their station
-        String response = ApiClient.get("booking/station/" + stationId, token).get();
+        Log.d("BookingApi", "Fetching bookings for StationId=" + stationId + " | Token=" + token);
+        Future<String> futureResponse = ApiClient.get("booking/station/" + stationId, token);
+        String response = futureResponse.get();
+        Log.d("BookingApi", "Response: " + response);
         return new JSONArray(response);
     }
 
-    public static JSONObject updateBooking(String id, JSONObject update, String token) throws Exception {
-        String response = ApiClient.put("booking/" + id, update.toString(), token);
+    /**
+     * Update an existing booking with new details.
+     */
+    public static JSONObject updateBooking(String bookingId, JSONObject update, String token) throws Exception {
+      String response = ApiClient.put("booking/" + bookingId, update.toString(), token);
+        Log.d("BookingApi", "Updated booking response: " + response);
         return new JSONObject(response);
     }
 
+    /**
+     * Cancel a booking by updating its status to "Cancelled".
+     */
     public static boolean cancelBooking(String bookingId) {
         try {
             String token = SharedPrefsHelper.getToken(context);
             JSONObject update = new JSONObject();
             update.put("status", "Cancelled");
+
             updateBooking(bookingId, update, token);
             return true;
-        } catch (Exception e) { return false; }
+        } catch (Exception e) {
+            Log.e("BookingApi", "Failed to cancel booking", e);
+            return false;
+        }
     }
-
 }

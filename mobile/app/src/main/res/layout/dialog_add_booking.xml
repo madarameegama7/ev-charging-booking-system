@@ -9,18 +9,14 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Station ID"
+        android:text="Station"
         android:textStyle="bold"
         android:layout_marginTop="8dp"/>
 
-    <EditText
-        android:id="@+id/etStationId"
+    <Spinner
+        android:id="@+id/spinnerStation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Enter Station ID"
-        android:inputType="text"
-        android:padding="8dp"
-        android:background="@android:drawable/edit_text"
         android:layout_marginTop="4dp"/>
 
     <TextView

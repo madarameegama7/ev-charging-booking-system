@@ -105,9 +105,11 @@ public class RegisterActivity extends AppCompatActivity {
                 runOnUiThread(() -> {
                     toggleLoading(false);
                     Toast.makeText(RegisterActivity.this,
-                            "Registration failed: " + ex.getMessage(), Toast.LENGTH_LONG).show();
+                            "E" + ex.getMessage(),
+                            Toast.LENGTH_LONG).show();
                 });
             }
+
         });
     }
 

@@ -7,9 +7,11 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -18,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.evchargingapp.R;
 import com.example.evchargingapp.adapters.BookingAdapter;
 import com.example.evchargingapp.api.BookingApi;
+import com.example.evchargingapp.api.StationApi;
 import com.example.evchargingapp.database.BookingDAO;
 import com.example.evchargingapp.models.Booking;
 import com.example.evchargingapp.utils.SharedPrefsHelper;
@@ -58,9 +61,20 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
 
             rvBookings.setLayoutManager(new LinearLayoutManager(this));
             adapter = new BookingAdapter(this, displayedList, new BookingAdapter.BookingListener() {
-                @Override public void onModify(Booking booking) { showBookingForm(booking); }
-                @Override public void onCancel(Booking booking) { showCancelConfirmation(booking); }
-                @Override public void onShowQR(Booking booking) { showQrDialog(booking.getBookingId()); }
+                @Override
+                public void onModify(Booking booking) {
+                    showBookingForm(booking);
+                }
+
+                @Override
+                public void onCancel(Booking booking) {
+                    showCancelConfirmation(booking);
+                }
+
+                @Override
+                public void onShowQR(Booking booking) {
+                    showQrDialog(booking.getBookingId());
+                }
             });
             rvBookings.setAdapter(adapter);
 
@@ -70,9 +84,18 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
             tabLayout.addTab(tabLayout.newTab().setText("Past"));
 
             tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-                @Override public void onTabSelected(TabLayout.Tab tab) { filterBookings(tab.getPosition() == 0); }
-                @Override public void onTabUnselected(TabLayout.Tab tab) {}
-                @Override public void onTabReselected(TabLayout.Tab tab) {}
+                @Override
+                public void onTabSelected(TabLayout.Tab tab) {
+                    filterBookings(tab.getPosition() == 0);
+                }
+
+                @Override
+                public void onTabUnselected(TabLayout.Tab tab) {
+                }
+
+                @Override
+                public void onTabReselected(TabLayout.Tab tab) {
+                }
             });
 
             fetchBookings();
@@ -89,9 +112,13 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
         for (Booking b : bookingList) {
             try {
                 Date start = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).parse(b.getStartTimeUtc());
-                if (upcoming && start.after(now)) displayedList.add(b);
-                else if (!upcoming && start.before(now)) displayedList.add(b);
-            } catch (Exception ignored) {}
+                if (upcoming && start.after(now)) {
+                    displayedList.add(b);
+                } else if (!upcoming && start.before(now)) {
+                    displayedList.add(b);
+                }
+            } catch (Exception ignored) {
+            }
         }
         adapter.notifyDataSetChanged();
         if (displayedList.isEmpty()) {
@@ -104,46 +131,128 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
     private void showBookingForm(Booking booking) {
         editingBooking = booking;
         View formView = getLayoutInflater().inflate(R.layout.dialog_add_booking, null);
-        EditText etStationId = formView.findViewById(R.id.etStationId);
+        Spinner spinnerStation = formView.findViewById(R.id.spinnerStation);
         EditText etStartTime = formView.findViewById(R.id.etStartTime);
         EditText etEndTime = formView.findViewById(R.id.etEndTime);
         Button btnSubmitBooking = formView.findViewById(R.id.btnSubmitBooking);
 
-        if (booking != null) {
-            etStationId.setText(booking.getStationId());
-            etStartTime.setText(booking.getStartTimeUtc());
-            etEndTime.setText(booking.getEndTimeUtc());
-        }
+        final Map<String, String> nameToId = new HashMap<>(); // keep only this
+
+        executor.execute(() -> {
+            try {
+                String token = SharedPrefsHelper.getToken(this);
+                JSONArray stations = StationApi.getAllStations(token);
+                List<String> stationNames = new ArrayList<>();
+
+                for (int i = 0; i < stations.length(); i++) {
+                    JSONObject s = stations.getJSONObject(i);
+                    String id = s.getString("stationId"); // server ID
+                    String name = s.getString("name");
+
+                    stationNames.add(name);
+                    nameToId.put(name, id); // fill the outer map
+                }
+
+                runOnUiThread(() -> {
+                    ArrayAdapter<String> adapterSpinner = new ArrayAdapter<>(this,
+                            android.R.layout.simple_spinner_item, stationNames);
+                    adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    spinnerStation.setAdapter(adapterSpinner);
+                });
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
 
         etStartTime.setOnClickListener(v -> pickDateTime(etStartTime));
         etEndTime.setOnClickListener(v -> pickDateTime(etEndTime));
 
         AlertDialog dialog = new AlertDialog.Builder(this).setView(formView).create();
         dialog.show();
-
         btnSubmitBooking.setOnClickListener(v -> {
-            String stationId = etStationId.getText().toString().trim();
+            String stationName = (String) spinnerStation.getSelectedItem();
+            if (stationName == null || !nameToId.containsKey(stationName)) {
+                Toast.makeText(this, "Please select a station", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            String stationId = nameToId.get(stationName);
             String start = etStartTime.getText().toString().trim();
             String end = etEndTime.getText().toString().trim();
 
-            if (stationId.isEmpty() || start.isEmpty() || end.isEmpty()) {
+            if (start.isEmpty() || end.isEmpty()) {
                 Toast.makeText(this, "Fill all fields", Toast.LENGTH_SHORT).show();
                 return;
             }
 
-            new AlertDialog.Builder(this)
-                    .setTitle("Confirm Booking")
-                    .setMessage("Station: " + stationId + "\nStart: " + start + "\nEnd: " + end)
-                    .setPositiveButton("Confirm", (d, w) -> {
-                        dialog.dismiss();
-                        if (editingBooking == null) createBooking(stationId, start, end);
-                        else modifyBooking(editingBooking.getBookingId(), stationId, start, end);
-                    })
-                    .setNegativeButton("Cancel", null)
-                    .show();
+            try {
+                // Parse local dates
+                SimpleDateFormat sdfLocal = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+                Date startDate = sdfLocal.parse(start);
+                Date endDate = sdfLocal.parse(end);
+
+                // Convert to UTC
+                SimpleDateFormat sdfUtc = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+                sdfUtc.setTimeZone(TimeZone.getTimeZone("UTC"));
+                String startUtc = sdfUtc.format(startDate);
+                String endUtc = sdfUtc.format(endDate);
+
+                // Log for debugging
+                Log.d("BookingDebug", "Selected Start (local): " + start);
+                Log.d("BookingDebug", "Selected End   (local): " + end);
+                Log.d("BookingDebug", "Start UTC sent : " + startUtc);
+                Log.d("BookingDebug", "End UTC sent   : " + endUtc);
+                Log.d("BookingDebug", "Current UTC time: " + sdfUtc.format(new Date()));
+
+                // Validate 1-hour rule before sending
+                Date nowUtc = new Date();
+                Calendar oneHourLater = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+                oneHourLater.setTime(nowUtc);
+                oneHourLater.add(Calendar.HOUR_OF_DAY, 1);
+
+                if (startDate.before(oneHourLater.getTime())) {
+                    Toast.makeText(this, "Start time must be at least 1 hour from now", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                // Optional: validate within 7 days
+                Calendar limit = Calendar.getInstance();
+                limit.add(Calendar.DAY_OF_YEAR, 7);
+                if (startDate.after(limit.getTime()) || endDate.after(limit.getTime())) {
+                    Toast.makeText(this, "Both start and end times must be within 7 days from now", Toast.LENGTH_LONG)
+                            .show();
+                    return;
+                }
+
+                // Show confirmation dialog
+                String summary = "📍 Station: " + stationName
+                        + "\n\n🕒 Start: " + startUtc
+                        + "\n⏰ End: " + endUtc
+                        + "\n\nPlease confirm your reservation details.";
+
+                new AlertDialog.Builder(this)
+                        .setTitle("Review Reservation")
+                        .setMessage(summary)
+                        .setPositiveButton("Confirm", (d, w) -> {
+                            dialog.dismiss();
+                            if (editingBooking == null) {
+                                createBooking(stationId, startUtc, endUtc);
+                            } else {
+                                modifyBooking(editingBooking.getBookingId(), stationId, startUtc, endUtc);
+                            }
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
+
+            } catch (Exception ex) {
+                Toast.makeText(this, "Invalid date format", Toast.LENGTH_SHORT).show();
+            }
         });
+
     }
 
+    // Pick date and time, store in local format
     private void pickDateTime(EditText target) {
         Calendar calendar = Calendar.getInstance();
         new DatePickerDialog(this, (view, year, month, day) -> {
@@ -151,14 +260,26 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
             new TimePickerDialog(this, (v, hour, min) -> {
                 calendar.set(Calendar.HOUR_OF_DAY, hour);
                 calendar.set(Calendar.MINUTE, min);
-                target.setText(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).format(calendar.getTime()));
+                calendar.set(Calendar.SECOND, 0);
+                calendar.set(Calendar.MILLISECOND, 0);
+
+                // Format in local time
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+                sdf.setTimeZone(TimeZone.getDefault()); // ensures local timezone
+                target.setText(sdf.format(calendar.getTime()));
+
+                Log.d("BookingDebug", "Selected (local): " + target.getText().toString());
+
             }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show();
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show();
     }
 
-    private void toggleLoading(boolean isLoading) {
-        progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
-        btnAddBooking.setEnabled(!isLoading);
+    private void toggleLoading(boolean show) {
+        if (progressBar != null) {
+            progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
+        // Optionally disable user interaction while loading
+        getWindow().getDecorView().setEnabled(!show);
     }
 
     private void fetchBookings() {
@@ -187,11 +308,11 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
                     JSONObject obj = resp.getJSONObject(i);
                     Booking b = new Booking();
                     b.setBookingId(obj.optString("id"));
-                    b.setStationId(obj.optString("stationId"));
+                    b.setStationId(obj.optString("stationId", obj.optString("StationId", "")));
                     b.setOwnerNic(nic);
-                    b.setStartTimeUtc(obj.optString("start"));
-                    b.setEndTimeUtc(obj.optString("end"));
-                    b.setStatus(obj.optString("status"));
+                    b.setStartTimeUtc(obj.optString("startTimeUtc"));
+                    b.setEndTimeUtc(obj.optString("endTimeUtc"));
+                    b.setStatus(String.valueOf(obj.optInt("status")));
                     bookingList.add(b);
                     bookingDAO.insertOrUpdateBooking(b); // cache locally
                 }
@@ -199,63 +320,75 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
                 runOnUiThread(() -> filterBookings(tabLayout.getSelectedTabPosition() == 0));
 
             } catch (Exception e) {
-                runOnUiThread(() ->
-                        Toast.makeText(this, "Error fetching bookings", Toast.LENGTH_SHORT).show()
-                );
+                runOnUiThread(() -> Toast.makeText(this, "Error fetching bookings", Toast.LENGTH_SHORT).show());
             } finally {
                 bookingDAO.close();
             }
         });
     }
 
-    private void createBooking(String stationId, String start, String end) {
-        toggleLoading(true);
-        executor.execute(() -> {
-            try {
-                String ownerNic = SharedPrefsHelper.getNic(this);
-                String token = SharedPrefsHelper.getToken(this);
-                JSONObject response = BookingApi.createBooking(stationId, ownerNic, start, end, token);
+  private void createBooking(String stationId, String start, String end) {
+    toggleLoading(true);
+    executor.execute(() -> {
+        try {
+            String ownerNic = SharedPrefsHelper.getNic(this);
+            String token = SharedPrefsHelper.getToken(this);
 
-                runOnUiThread(() -> {
-                    toggleLoading(false);
-                    fetchBookings();
-                    Toast.makeText(this, "Booking created", Toast.LENGTH_SHORT).show();
-                });
-            } catch (Exception e) {
-                runOnUiThread(() -> {
-                    toggleLoading(false);
-                    Toast.makeText(this, "Failed to create booking", Toast.LENGTH_SHORT).show();
-                });
-            }
-        });
-    }
+            // Build JSON object
+            JSONObject json = new JSONObject();
+            json.put("stationId", stationId);
+            json.put("ownerNic", ownerNic);
+            json.put("startTimeUtc", start);
+            json.put("endTimeUtc", end);
 
+            // Call API
+            JSONObject response = BookingApi.createBooking(json, token);
 
-    private void modifyBooking(String bookingId, String stationId, String start, String end) {
-        toggleLoading(true);
-        executor.execute(() -> {
-            try {
-                String token = SharedPrefsHelper.getToken(this);
-                JSONObject update = new JSONObject();
-                update.put("stationId", stationId);
-                update.put("startTimeUtc", start);
-                update.put("endTimeUtc", end);
+            runOnUiThread(() -> {
+                toggleLoading(false);
+                fetchBookings();
+                Toast.makeText(this, "Booking created", Toast.LENGTH_SHORT).show();
+            });
+        } catch (Exception e) {
+            Log.e("CreateBookingError", "Error creating booking", e);
+            runOnUiThread(() -> {
+                toggleLoading(false);
+                Toast.makeText(this, "Failed to create booking: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            });
+        }
+    });
+}
 
-                BookingApi.updateBooking(bookingId, update, token);
+ 
+private void modifyBooking(String bookingId, String stationId, String start, String end) {
+    toggleLoading(true);
+    executor.execute(() -> {
+        try {
+            String token = SharedPrefsHelper.getToken(this);
 
-                runOnUiThread(() -> {
-                    toggleLoading(false);
-                    fetchBookings();
-                    Toast.makeText(this, "Booking modified", Toast.LENGTH_SHORT).show();
-                });
-            } catch (Exception e) {
-                runOnUiThread(() -> {
-                    toggleLoading(false);
-                    Toast.makeText(this, "Failed to modify booking", Toast.LENGTH_SHORT).show();
-                });
-            }
-        });
-    }
+            // Build JSON object
+            JSONObject update = new JSONObject();
+            update.put("stationId", stationId);
+            update.put("startTimeUtc", start);
+            update.put("endTimeUtc", end);
+
+            // Call API
+            JSONObject response = BookingApi.updateBooking(bookingId, update, token);
+
+            runOnUiThread(() -> {
+                toggleLoading(false);
+                fetchBookings();
+                Toast.makeText(this, "Booking modified", Toast.LENGTH_SHORT).show();
+            });
+        } catch (Exception e) {
+            Log.e("ModifyBookingError", "Error modifying booking", e);
+            runOnUiThread(() -> {
+                toggleLoading(false);
+                Toast.makeText(this, "Failed to modify booking", Toast.LENGTH_SHORT).show();
+            });
+        }
+    });
+}
 
 
     private void showCancelConfirmation(Booking booking) {
@@ -273,8 +406,12 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
             boolean success = BookingApi.cancelBooking(bookingId);
             runOnUiThread(() -> {
                 toggleLoading(false);
-                if (success) { fetchBookings(); Toast.makeText(this, "Booking cancelled", Toast.LENGTH_SHORT).show(); }
-                else Toast.makeText(this, "Failed to cancel booking", Toast.LENGTH_SHORT).show();
+                if (success) {
+                    fetchBookings();
+                    Toast.makeText(this, "Booking cancelled", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "Failed to cancel booking", Toast.LENGTH_SHORT).show();
+                }
             });
         });
     }
@@ -286,10 +423,12 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("Booking QR Code")
                     .setPositiveButton("Close", null)
-                    .setView(new androidx.appcompat.widget.AppCompatImageView(this) {{
-                        setImageBitmap(bitmap);
-                        setPadding(32,32,32,32);
-                    }})
+                    .setView(new androidx.appcompat.widget.AppCompatImageView(this) {
+                        {
+                            setImageBitmap(bitmap);
+                            setPadding(32, 32, 32, 32);
+                        }
+                    })
                     .show();
         } catch (Exception e) {
             Toast.makeText(this, "Failed to generate QR", Toast.LENGTH_SHORT).show();
