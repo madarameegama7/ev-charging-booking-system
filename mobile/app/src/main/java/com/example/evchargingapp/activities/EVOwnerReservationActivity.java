@@ -58,9 +58,20 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
 
             rvBookings.setLayoutManager(new LinearLayoutManager(this));
             adapter = new BookingAdapter(this, displayedList, new BookingAdapter.BookingListener() {
-                @Override public void onModify(Booking booking) { showBookingForm(booking); }
-                @Override public void onCancel(Booking booking) { showCancelConfirmation(booking); }
-                @Override public void onShowQR(Booking booking) { showQrDialog(booking.getBookingId()); }
+                @Override
+                public void onModify(Booking booking) {
+                    showBookingForm(booking);
+                }
+
+                @Override
+                public void onCancel(Booking booking) {
+                    showCancelConfirmation(booking);
+                }
+
+                @Override
+                public void onShowQR(Booking booking) {
+                    showQrDialog(booking.getBookingId());
+                }
             });
             rvBookings.setAdapter(adapter);
 
@@ -70,9 +81,18 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
             tabLayout.addTab(tabLayout.newTab().setText("Past"));
 
             tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
-                @Override public void onTabSelected(TabLayout.Tab tab) { filterBookings(tab.getPosition() == 0); }
-                @Override public void onTabUnselected(TabLayout.Tab tab) {}
-                @Override public void onTabReselected(TabLayout.Tab tab) {}
+                @Override
+                public void onTabSelected(TabLayout.Tab tab) {
+                    filterBookings(tab.getPosition() == 0);
+                }
+
+                @Override
+                public void onTabUnselected(TabLayout.Tab tab) {
+                }
+
+                @Override
+                public void onTabReselected(TabLayout.Tab tab) {
+                }
             });
 
             fetchBookings();
@@ -89,9 +109,13 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
         for (Booking b : bookingList) {
             try {
                 Date start = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).parse(b.getStartTimeUtc());
-                if (upcoming && start.after(now)) displayedList.add(b);
-                else if (!upcoming && start.before(now)) displayedList.add(b);
-            } catch (Exception ignored) {}
+                if (upcoming && start.after(now)) {
+                    displayedList.add(b); 
+                }else if (!upcoming && start.before(now)) {
+                    displayedList.add(b);
+                }
+            } catch (Exception ignored) {
+            }
         }
         adapter.notifyDataSetChanged();
         if (displayedList.isEmpty()) {
@@ -131,16 +155,42 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
                 return;
             }
 
-            new AlertDialog.Builder(this)
-                    .setTitle("Confirm Booking")
-                    .setMessage("Station: " + stationId + "\nStart: " + start + "\nEnd: " + end)
-                    .setPositiveButton("Confirm", (d, w) -> {
-                        dialog.dismiss();
-                        if (editingBooking == null) createBooking(stationId, start, end);
-                        else modifyBooking(editingBooking.getBookingId(), stationId, start, end);
-                    })
-                    .setNegativeButton("Cancel", null)
-                    .show();
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+                Date startDate = sdf.parse(start);
+                Date endDate = sdf.parse(end);
+                Date now = new Date();
+                Calendar limit = Calendar.getInstance();
+                limit.add(Calendar.DAY_OF_YEAR, 7);
+
+                if (startDate.after(limit.getTime()) || endDate.after(limit.getTime())) {
+                    Toast.makeText(this, "Both start and end times must be within 7 days from now", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                // Show summary dialog before final confirmation
+                String summary = "📍 Station ID: " + stationId
+                        + "\n\n🕒 Start: " + start
+                        + "\n⏰ End: " + end
+                        + "\n\nPlease confirm your reservation details.";
+
+                new AlertDialog.Builder(this)
+                        .setTitle("Review Reservation")
+                        .setMessage(summary)
+                        .setPositiveButton("Confirm", (d, w) -> {
+                            dialog.dismiss();
+                            if (editingBooking == null) {
+                                createBooking(stationId, start, end); 
+                            }else {
+                                modifyBooking(editingBooking.getBookingId(), stationId, start, end);
+                            }
+                        })
+                        .setNegativeButton("Cancel", null)
+                        .show();
+
+            } catch (Exception ex) {
+                Toast.makeText(this, "Invalid date format", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 
@@ -199,8 +249,8 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
                 runOnUiThread(() -> filterBookings(tabLayout.getSelectedTabPosition() == 0));
 
             } catch (Exception e) {
-                runOnUiThread(() ->
-                        Toast.makeText(this, "Error fetching bookings", Toast.LENGTH_SHORT).show()
+                runOnUiThread(()
+                        -> Toast.makeText(this, "Error fetching bookings", Toast.LENGTH_SHORT).show()
                 );
             } finally {
                 bookingDAO.close();
@@ -230,7 +280,6 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
         });
     }
 
-
     private void modifyBooking(String bookingId, String stationId, String start, String end) {
         toggleLoading(true);
         executor.execute(() -> {
@@ -257,7 +306,6 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
         });
     }
 
-
     private void showCancelConfirmation(Booking booking) {
         new AlertDialog.Builder(this)
                 .setTitle("Cancel Reservation")
@@ -273,8 +321,12 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
             boolean success = BookingApi.cancelBooking(bookingId);
             runOnUiThread(() -> {
                 toggleLoading(false);
-                if (success) { fetchBookings(); Toast.makeText(this, "Booking cancelled", Toast.LENGTH_SHORT).show(); }
-                else Toast.makeText(this, "Failed to cancel booking", Toast.LENGTH_SHORT).show();
+                if (success) {
+                    fetchBookings();
+                    Toast.makeText(this, "Booking cancelled", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "Failed to cancel booking", Toast.LENGTH_SHORT).show();
+                }
             });
         });
     }
@@ -286,10 +338,12 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setTitle("Booking QR Code")
                     .setPositiveButton("Close", null)
-                    .setView(new androidx.appcompat.widget.AppCompatImageView(this) {{
-                        setImageBitmap(bitmap);
-                        setPadding(32,32,32,32);
-                    }})
+                    .setView(new androidx.appcompat.widget.AppCompatImageView(this) {
+                        {
+                            setImageBitmap(bitmap);
+                            setPadding(32, 32, 32, 32);
+                        }
+                    })
                     .show();
         } catch (Exception e) {
             Toast.makeText(this, "Failed to generate QR", Toast.LENGTH_SHORT).show();

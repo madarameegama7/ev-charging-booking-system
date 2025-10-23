@@ -173,7 +173,8 @@ public class EVOwnerProfileActivity extends AppCompatActivity {
 
                     String response = ApiClient.put("user/profile/" + nic, json.toString(), token);
                     System.out.println("Update profile response: " + response);
-                    boolean success = response.contains("Profile updated successfully");
+                    JSONObject res = new JSONObject(response);
+                    boolean success = res.optString("message").equalsIgnoreCase("Profile updated successfully");
 
                     if (success) {
                         // Update local SQLite

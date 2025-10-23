@@ -10,7 +10,7 @@ using Backend.Utils;
 
 namespace Backend.Controllers
 {
-	
+
 	//Manages users across roles. Role checks will be added after JWT integration
 	[ApiController]
 	[Route("api/[controller]")]
@@ -51,7 +51,7 @@ namespace Backend.Controllers
 		public async Task<IActionResult> Create([FromBody] CreateUserRequest req)
 		{
 			var count = await _userService.CountAsync();
-			
+
 			// Bootstrap: if no users exist, allow creation of first Backoffice user
 			if (count == 0)
 			{
@@ -175,53 +175,87 @@ namespace Backend.Controllers
 		}
 
 		// Get user profile by NIC
-        [HttpGet("profile/{nic}")]
-        [Authorize(Roles = "Owner,Operator,Backoffice")]
-        public async Task<IActionResult> GetProfile(string nic)
-        {
-            var user = await _userService.GetByNicAsync(nic);
-            if (user == null) return NotFound("User not found.");
+		[HttpGet("profile/{nic}")]
+		[Authorize(Roles = "Owner,Operator,Backoffice")]
+		public async Task<IActionResult> GetProfile(string nic)
+		{
+			var user = await _userService.GetByNicAsync(nic);
+			if (user == null) return NotFound("User not found.");
 
-            // Return minimal fields for profile display
-            return Ok(new
-            {
-                nic = user.NIC,
-                name = user.Name,
-                email = user.Email,
-                phone = user.Phone,
-                isActive = user.IsActive
-            });
-        }
+			// Return minimal fields for profile display
+			return Ok(new
+			{
+				nic = user.NIC,
+				name = user.Name,
+				email = user.Email,
+				phone = user.Phone,
+				isActive = user.IsActive
+			});
+		}
 
-		// Update user profile
-        [HttpPut("profile/{nic}")]
-        [Authorize(Roles = "Owner")]
-        public async Task<IActionResult> UpdateProfile(string nic, [FromBody] User update)
-        {
-            var existing = await _userService.GetByNicAsync(nic);
-            if (existing == null) return NotFound("User not found.");
+		// // Update user profile
+		// [HttpPut("profile/{nic}")]
+		// [Authorize(Roles = "Owner")]
+		// public async Task<IActionResult> UpdateProfile(string nic, [FromBody] User update)
+		// {
+		//     var existing = await _userService.GetByNicAsync(nic);
+		//     if (existing == null) return NotFound("User not found.");
 
-            // Only allow updating name, email, and phone
-            existing.Name = update.Name ?? existing.Name;
-            existing.Email = update.Email ?? existing.Email;
-            existing.Phone = update.Phone ?? existing.Phone;
+		//     // Only allow updating name, email, and phone
+		//     existing.Name = update.Name ?? existing.Name;
+		//     existing.Email = update.Email ?? existing.Email;
+		//     existing.Phone = update.Phone ?? existing.Phone;
 
+		// 	var updatedUser = await _userService.UpdateByNicAsync(nic, existing);
+		// 	return Ok(new { message = "Profile updated successfully", updated = updatedUser });
+		// }
+
+		// DTO for updating profile
+		public class UpdateProfileRequest
+		{
+			public string? Name { get; set; }
+			public string? Email { get; set; }
+			public string? Phone { get; set; }
+		}
+
+		[HttpPut("profile/{nic}")]
+		[Authorize(Roles = "Owner")]
+		public async Task<IActionResult> UpdateProfile(string nic, [FromBody] UpdateProfileRequest update)
+		{
+			// Fetch existing user
+			var existing = await _userService.GetByNicAsync(nic);
+			if (existing == null)
+				return NotFound("User not found.");
+
+			// Only update fields provided
+			if (!string.IsNullOrWhiteSpace(update.Name))
+				existing.Name = update.Name;
+
+			if (!string.IsNullOrWhiteSpace(update.Email))
+				existing.Email = update.Email;
+
+			if (!string.IsNullOrWhiteSpace(update.Phone))
+				existing.Phone = update.Phone;
+
+			// Save updated user
 			var updatedUser = await _userService.UpdateByNicAsync(nic, existing);
+
+			// Return success message
 			return Ok(new { message = "Profile updated successfully", updated = updatedUser });
-        }
+		}
 
 		// Deactivate user account
-        [HttpPut("profile/{nic}/deactivate")]
-        [Authorize(Roles = "Owner")]
-        public async Task<IActionResult> DeactivateAccount(string nic)
-        {
-            var existing = await _userService.GetByNicAsync(nic);
-            if (existing == null) return NotFound("User not found.");
+		[HttpPut("profile/{nic}/deactivate")]
+		[Authorize(Roles = "Owner")]
+		public async Task<IActionResult> DeactivateAccount(string nic)
+		{
+			var existing = await _userService.GetByNicAsync(nic);
+			if (existing == null) return NotFound("User not found.");
 
-            existing.IsActive = false;
+			existing.IsActive = false;
 			await _userService.UpdateByNicAsync(nic, existing);
 
 			return Ok(new { message = "Account deactivated successfully" });
-        }
+		}
 	}
 }

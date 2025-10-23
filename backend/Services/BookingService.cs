@@ -17,7 +17,7 @@ namespace Backend.Services
 			_repo = repo;
 			_stationRepo = stationRepo;
 		}
-		
+
 
 		public async Task<Booking> CreateAsync(Booking booking)
 		{
@@ -59,5 +59,3 @@ namespace Backend.Services
 		}
 	}
 }
-
-

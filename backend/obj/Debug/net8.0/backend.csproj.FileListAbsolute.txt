@@ -52,11 +52,9 @@ E:\ev-charging-booking-system\backend\bin\Debug\net8.0\runtimes\osx\native\libmo
 E:\ev-charging-booking-system\backend\bin\Debug\net8.0\runtimes\win\native\mongocrypt.dll
 E:\ev-charging-booking-system\backend\bin\Debug\net8.0\BCrypt.Net-Next.dll
 <<<<<<< HEAD
-<<<<<<< HEAD
 =======
 E:\ev-charging-booking-system\backend\bin\Debug\net8.0\Data\sample_bookings.json
 E:\ev-charging-booking-system\backend\bin\Debug\net8.0\Data\sample_bookings_corrected.json
-=======
 >>>>>>> 11e6285dd73693d8d37620b81509ed9aa1a7515c
 C:\Users\janud\OneDrive\Desktop\SLIIT\4thYear\1stSemester\EAD\projects\ev-charging-booking-system\backend\bin\Debug\net8.0\appsettings.Development.json
 C:\Users\janud\OneDrive\Desktop\SLIIT\4thYear\1stSemester\EAD\projects\ev-charging-booking-system\backend\bin\Debug\net8.0\appsettings.json
@@ -113,13 +111,7 @@ C:\Users\janud\OneDrive\Desktop\SLIIT\4thYear\1stSemester\EAD\projects\ev-chargi
 C:\Users\janud\OneDrive\Desktop\SLIIT\4thYear\1stSemester\EAD\projects\ev-charging-booking-system\backend\obj\Debug\net8.0\backend.pdb
 C:\Users\janud\OneDrive\Desktop\SLIIT\4thYear\1stSemester\EAD\projects\ev-charging-booking-system\backend\obj\Debug\net8.0\backend.genruntimeconfig.cache
 C:\Users\janud\OneDrive\Desktop\SLIIT\4thYear\1stSemester\EAD\projects\ev-charging-booking-system\backend\obj\Debug\net8.0\ref\backend.dll
-<<<<<<< HEAD
-=======
-E:\ev-charging-booking-system\backend\bin\Debug\net8.0\Data\sample_bookings.json
-E:\ev-charging-booking-system\backend\bin\Debug\net8.0\Data\sample_bookings_corrected.json
 >>>>>>> 019204dfaa39ffa35af14f9ea38a8aa9f919f982
 C:\Users\janud\OneDrive\Desktop\SLIIT\4thYear\1stSemester\EAD\projects\ev-charging-booking-system\backend\bin\Debug\net8.0\Data\sample_bookings.json
 C:\Users\janud\OneDrive\Desktop\SLIIT\4thYear\1stSemester\EAD\projects\ev-charging-booking-system\backend\bin\Debug\net8.0\Data\sample_bookings_corrected.json
-=======
 >>>>>>> d288d78aaa3ba69a0b54def0f501ae6837ea0ef9
->>>>>>> 11e6285dd73693d8d37620b81509ed9aa1a7515c
