@@ -20,8 +20,21 @@ namespace Backend.Controllers
 		[Authorize(Roles = "Owner,Operator,Backoffice")]
 		public async Task<IActionResult> Create([FromBody] Booking booking)
 		{
-			var created = await _service.CreateAsync(booking);
-			return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+			try
+			{
+				var result = await _service.CreateAsync(booking);
+				return Ok(result); // returns JSON
+			}
+			catch (ArgumentException ex)
+			{
+				// Return structured JSON error instead of plain text
+				return BadRequest(new { error = ex.Message });
+			}
+			catch (Exception ex)
+			{
+				// General server error
+				return StatusCode(500, new { error = "Internal server error" });
+			}
 		}
 
 		//get all bookings
@@ -43,7 +56,7 @@ namespace Backend.Controllers
 
 		//get bookings by owner - owner, operator, backoffice
 		[HttpGet("owner/{nic}")]
-		[Authorize(Roles = "Owner,Operator,Backoffice")]
+
 		public async Task<IActionResult> GetByOwner(string nic) => Ok(await _service.GetByOwnerAsync(nic));
 
 		//get bookings by station - public
