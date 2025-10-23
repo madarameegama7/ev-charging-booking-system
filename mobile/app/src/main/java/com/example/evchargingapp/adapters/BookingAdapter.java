@@ -34,7 +34,7 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.ViewHold
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.booking_item, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.booking_reservation, parent, false);
         return new ViewHolder(view);
     }
 

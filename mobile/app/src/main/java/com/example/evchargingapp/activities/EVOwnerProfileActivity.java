@@ -22,6 +22,8 @@ import com.example.evchargingapp.utils.SharedPrefsHelper;
 
 import org.json.JSONObject;
 
+import java.util.concurrent.Future;
+
 public class EVOwnerProfileActivity extends AppCompatActivity {
 
     private EditText etName, etEmail, etPhone, etPassword;
@@ -141,7 +143,7 @@ public class EVOwnerProfileActivity extends AppCompatActivity {
         String password = etPassword.getText().toString().trim();
 
         if (name.isEmpty() || email.isEmpty() || phone.isEmpty()) {
-            Toast.makeText(this, "Name, email, and phone are required!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please fill all required fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -168,11 +170,11 @@ public class EVOwnerProfileActivity extends AppCompatActivity {
                     json.put("name", name);
                     json.put("email", email);
                     json.put("phone", phone);
-                    if (!password.isEmpty()) json.put("passwordHash", password);
 
-                    String response = ApiClient.put("api/user/profile/" + nic, json.toString(), token);
+                    String response = ApiClient.put("user/profile/" + nic, json.toString(), token);
                     System.out.println("Update profile response: " + response);
-                    boolean success = response.contains("Profile updated successfully");
+                    JSONObject res = new JSONObject(response);
+                    boolean success = res.optString("message").equalsIgnoreCase("Profile updated successfully");
 
                     if (success) {
                         // Update local SQLite
@@ -201,8 +203,43 @@ public class EVOwnerProfileActivity extends AppCompatActivity {
                     tvProfileName.setText(name);
                     tvInitials.setText(getInitials(name));
                     etPassword.setText("");
+
+                    // Only update password if a new one is entered
+                    if (!password.isEmpty()) {
+                        updatePassword(nic, token, password);
+                    }
+
                 } else {
                     Toast.makeText(EVOwnerProfileActivity.this, "✗ Update failed! Please try again.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }.execute();
+    }
+
+    private void updatePassword(String nic, String token, String newPassword) {
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                try {
+                    JSONObject json = new JSONObject();
+                    json.put("NewPassword", newPassword);
+
+                    Future<String> future = ApiClient.post("user/" + nic + "/password", json.toString(), token);
+                    String response = future.get(); // safely call get() in background thread
+                    return response.contains("Password updated successfully");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(Boolean success) {
+                if (success) {
+                    Toast.makeText(EVOwnerProfileActivity.this, "Password updated successfully!", Toast.LENGTH_SHORT).show();
+                    etPassword.setText(""); // clear password field
+                } else {
+                    Toast.makeText(EVOwnerProfileActivity.this, "Failed to update password", Toast.LENGTH_SHORT).show();
                 }
             }
         }.execute();
@@ -224,7 +261,7 @@ public class EVOwnerProfileActivity extends AppCompatActivity {
                         @Override
                         protected Boolean doInBackground(Void... voids) {
                             try {
-                                String response = ApiClient.put("api/user/profile/" + nic + "/deactivate", "{}", token);
+                                String response = ApiClient.put("user/profile/" + nic + "/deactivate", "{}", token);
                                 return response.contains("Account deactivated successfully");
                             } catch (Exception e) {
                                 e.printStackTrace();

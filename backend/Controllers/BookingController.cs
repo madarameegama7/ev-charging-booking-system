@@ -15,7 +15,7 @@ namespace Backend.Controllers
 		private readonly IBookingService _service;
 		public BookingController(IBookingService service) { _service = service; }
 
-        //add booking
+		//add booking
 		[HttpPost]
 		[Authorize(Roles = "Owner,Operator,Backoffice")]
 		public async Task<IActionResult> Create([FromBody] Booking booking)
@@ -27,7 +27,6 @@ namespace Backend.Controllers
 		//get all bookings
 		[HttpGet]
 		[Authorize(Roles = "Backoffice,Operator")]
-		[HttpGet]
 		public async Task<ActionResult<List<Booking>>> GetAll()
 		{
 			var bookings = await _service.GetAllAsync();
@@ -55,7 +54,7 @@ namespace Backend.Controllers
 			var bookings = await _service.GetByStationAsync(stationId);
 			return Ok(bookings);
 		}
-	 	//update booking - owner, operator, backoffice
+		//update booking - owner, operator, backoffice
 		[HttpPut("{id}")]
 		[Authorize(Roles = "Owner,Operator,Backoffice")]
 		public async Task<IActionResult> Update(string id, [FromBody] Booking update)

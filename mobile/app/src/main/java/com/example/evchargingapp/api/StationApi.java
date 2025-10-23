@@ -12,10 +12,21 @@ import org.json.JSONObject;
 
 public class StationApi {
 
-    public static JSONArray getAllStations() throws Exception {
-        String response = ApiClient.get("station", null).get();
-        return new JSONArray(response);
+    public static JSONArray getAllStations(String token) throws Exception {
+        String response = ApiClient.get("station", token).get();
+        Object json = new org.json.JSONTokener(response).nextValue();
+
+        if (json instanceof JSONObject) {
+            JSONObject obj = (JSONObject) json;
+            // If backend wraps the list in "data"
+            return obj.has("data") ? obj.getJSONArray("data") : new JSONArray();
+        } else if (json instanceof JSONArray) {
+            return (JSONArray) json;
+        } else {
+            return new JSONArray();
+        }
     }
+
 
     public static JSONObject getStationById(String id) throws Exception {
         String response = ApiClient.get("station/" + id, null).get();
