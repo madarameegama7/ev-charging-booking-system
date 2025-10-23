@@ -17,6 +17,7 @@ public class AuthApi {
         body.put("Password", password);
 
         String response = ApiClient.post("auth/login", body.toString(), null).get();
+        System.out.println("DEBUG RESPONSE: " + response);
         return new JSONObject(response);
     }
 

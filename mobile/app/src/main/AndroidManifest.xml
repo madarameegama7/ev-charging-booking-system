@@ -16,6 +16,15 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
+            android:name=".activities.EVOperatorCompletedBookingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.EVOperatorActiveBookingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.QrScannerActivity"
+            android:exported="false" />
+        <activity
             android:name=".activities.QRScannerActivity"
             android:exported="false" />
         <activity
