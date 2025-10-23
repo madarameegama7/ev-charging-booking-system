@@ -28,11 +28,15 @@ namespace Backend.Services
 			if (booking.EndTimeUtc <= booking.StartTimeUtc) throw new ArgumentException("End must be after start.");
 
 			// Ensure station exists and is active
-			var station = await _stationRepo.GetByIdAsync(booking.StationId);
+			var station = await _stationRepo.GetByStationIdAsync(booking.StationId);
 			if (station is null || !station.IsActive) throw new ArgumentException("Invalid or inactive station.");
+
+			// IMPORTANT: set Id to null so MongoDB auto-generates it
+			booking.Id = null;
 
 			return await _repo.CreateAsync(booking);
 		}
+
 
 
 		public Task<Booking?> GetByIdAsync(string id) => _repo.GetByIdAsync(id);

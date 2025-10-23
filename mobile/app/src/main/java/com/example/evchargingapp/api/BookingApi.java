@@ -8,10 +8,12 @@
 package com.example.evchargingapp.api;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.example.evchargingapp.utils.SharedPrefsHelper;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public class BookingApi {
@@ -21,16 +23,20 @@ public class BookingApi {
         context = ctx;
     }
 
-    public static JSONObject createBooking(String stationId, String ownerNic,
-                                           String start, String end, String token) throws Exception {
+    public static JSONObject createBooking(String stationId, String ownerNic, String startUtc, String endUtc, String token) throws Exception {
         JSONObject body = new JSONObject();
         body.put("stationId", stationId);
         body.put("ownerNic", ownerNic);
-        body.put("startTimeUtc", start);
-        body.put("endTimeUtc", end);
+        body.put("start", startUtc);
+        body.put("end", endUtc);
 
         String response = ApiClient.post("booking", body.toString(), token).get();
-        return new JSONObject(response);
+        try {
+            return new JSONObject(response); // try parse JSON
+        } catch (JSONException e) {
+            Log.e("BookingApi", "Server returned non-JSON: " + response);
+            throw new Exception("Server error: " + response);
+        }
     }
 
     public static JSONArray getBookingsByOwner(String nic, String token) throws Exception {

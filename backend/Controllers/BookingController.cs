@@ -27,7 +27,6 @@ namespace Backend.Controllers
 		//get all bookings
 		[HttpGet]
 		[Authorize(Roles = "Backoffice,Operator")]
-		[HttpGet]
 		public async Task<ActionResult<List<Booking>>> GetAll()
 		{
 			var bookings = await _service.GetAllAsync();
