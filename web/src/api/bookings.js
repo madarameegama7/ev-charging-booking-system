@@ -7,13 +7,13 @@ export async function listAllBookings() {
 }
 
 export async function listBookingsByStation(stationId) {
-	const res = await authFetch(`/api/Booking/station/${encodeURIComponent(stationId)}`);
+	const res = await authFetch(`/api/Booking/station/${stationId}`);
 	if (!res.ok) throw new Error('Failed to load station bookings');
 	return res.json();
 }
 
-export async function updateBooking(id, payload) {
-	const res = await authFetch(`/api/Booking/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+export async function updateBooking(bookingId, payload) {
+	const res = await authFetch(`/api/Booking/${bookingId}`, { method: 'PUT', body: JSON.stringify(payload) });
 	if (!res.ok) throw new Error('Update failed');
 	return res.json();
 }
