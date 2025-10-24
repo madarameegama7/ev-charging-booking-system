@@ -11,18 +11,18 @@ namespace Backend.Repositories
 	public class BookingRepository : IBookingRepository
 	{
 		private const string CollectionName = "bookings";
-		private readonly IMongoCollection<Booking> _collection;   
-		
-		public BookingRepository(MongoContext context)
-{
-    _collection = context.GetCollection<Booking>("bookings");
-}
+		private readonly IMongoCollection<Booking> _collection;
 
-public Task<List<Booking>> GetByStationsAsync(List<string> stationIds)
-{
-    var filter = Builders<Booking>.Filter.In(b => b.StationId, stationIds);
-    return _collection.Find(filter).ToListAsync();
-}
+		public BookingRepository(MongoContext context)
+		{
+			_collection = context.GetCollection<Booking>(CollectionName);
+		}
+
+		public Task<List<Booking>> GetByStationsAsync(List<string> stationIds)
+		{
+			var filter = Builders<Booking>.Filter.In(b => b.StationId, stationIds);
+			return _collection.Find(filter).ToListAsync();
+		}
 
 		public async Task<List<Booking>> GetAllAsync()
 		{
@@ -77,5 +77,3 @@ public Task<List<Booking>> GetByStationsAsync(List<string> stationIds)
 		}
 	}
 }
-
-

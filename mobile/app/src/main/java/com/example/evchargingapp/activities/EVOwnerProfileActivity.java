@@ -1,52 +1,138 @@
 package com.example.evchargingapp.activities;
 
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.evchargingapp.R;
 import com.example.evchargingapp.api.ApiClient;
+import com.example.evchargingapp.api.UserApi;
+import com.example.evchargingapp.database.EVOwnerDAO;
+import com.example.evchargingapp.models.EVOwner;
 import com.example.evchargingapp.utils.SharedPrefsHelper;
 
 import org.json.JSONObject;
 
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import java.util.concurrent.Future;
 
 public class EVOwnerProfileActivity extends AppCompatActivity {
 
     private EditText etName, etEmail, etPhone, etPassword;
     private Button btnUpdate, btnDeactivate;
+    private TextView tvInitials, tvProfileName, tvProfileNic;
+    private ImageView btnBack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_evowner_profile);
 
+        // Initialize views
         etName = findViewById(R.id.etName);
         etEmail = findViewById(R.id.etEmail);
         etPhone = findViewById(R.id.etPhone);
         etPassword = findViewById(R.id.etPassword);
         btnUpdate = findViewById(R.id.btnUpdate);
         btnDeactivate = findViewById(R.id.btnDeactivate);
+        tvInitials = findViewById(R.id.tvInitials);
+        tvProfileName = findViewById(R.id.tvProfileName);
+        tvProfileNic = findViewById(R.id.tvProfileNic);
+        btnBack = findViewById(R.id.btnBack);
 
-        // Prefill with stored info (optional from SharedPrefs or SQLite)
-//        etName.setText(SharedPrefsHelper.getUserName(this));
-//        etEmail.setText(SharedPrefsHelper.getUserEmail(this));
-//        etPhone.setText(SharedPrefsHelper.getUserPhone(this));
+        // Back button
+        btnBack.setOnClickListener(v -> finish());
+
+        // Load and display user info (hybrid)
+        loadUserInfoHybrid();
 
         btnUpdate.setOnClickListener(v -> updateProfile());
         btnDeactivate.setOnClickListener(v -> confirmDeactivation());
     }
 
+    // -------------------- Hybrid Load --------------------
+    private void loadUserInfoHybrid() {
+        // 1️⃣ Load from SQLite first
+        EVOwnerDAO dao = new EVOwnerDAO(this);
+        dao.open();
+        EVOwner owner = dao.getEVOwnerByNic(SharedPrefsHelper.getNic(this));
+        dao.close();
+
+        if (owner != null) {
+            prefillFields(owner);
+        } else {
+            // Placeholder if no local data
+            tvProfileName.setText("EV Owner");
+            tvInitials.setText(getInitials("EV Owner"));
+        }
+
+        // 2️⃣ Fetch latest from server
+        fetchFromServerAndUpdateSQLite();
+    }
+
+    private void prefillFields(EVOwner owner) {
+        etName.setText(owner.getName());
+        etEmail.setText(owner.getEmail());
+        etPhone.setText(owner.getPhone());
+        tvProfileName.setText(owner.getName());
+        tvInitials.setText(getInitials(owner.getName()));
+        tvProfileNic.setText("NIC: " + owner.getNic());
+    }
+
+    private void fetchFromServerAndUpdateSQLite() {
+        new AsyncTask<Void, Void, EVOwner>() {
+            @Override
+            protected EVOwner doInBackground(Void... voids) {
+                try {
+                    String nic = SharedPrefsHelper.getNic(EVOwnerProfileActivity.this);
+                    String token = SharedPrefsHelper.getToken(EVOwnerProfileActivity.this);
+                    JSONObject json = UserApi.getByNic(nic, token);
+                    EVOwner serverOwner = new EVOwner();
+                    serverOwner.setNic(json.getString("nic"));
+                    serverOwner.setName(json.getString("name"));
+                    serverOwner.setEmail(json.getString("email"));
+                    serverOwner.setPhone(json.getString("phone"));
+                    serverOwner.setActive(json.getBoolean("isActive"));
+                    return serverOwner;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return null;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(EVOwner serverOwner) {
+                if (serverOwner != null) {
+                    // Update UI
+                    prefillFields(serverOwner);
+
+                    // Update local SQLite
+                    EVOwnerDAO dao = new EVOwnerDAO(EVOwnerProfileActivity.this);
+                    dao.open();
+                    dao.insertEVOwner(serverOwner); // Insert or replace
+                    dao.close();
+                }
+            }
+        }.execute();
+    }
+
+    // -------------------- Utilities --------------------
+    private String getInitials(String name) {
+        if (name == null || name.trim().isEmpty()) return "EV";
+        String[] parts = name.trim().split("\\s+");
+        if (parts.length == 1) return parts[0].substring(0, Math.min(2, parts[0].length())).toUpperCase();
+        return (parts[0].substring(0, 1) + parts[parts.length - 1].substring(0, 1)).toUpperCase();
+    }
+
+    // -------------------- Update Profile --------------------
     private void updateProfile() {
         String nic = SharedPrefsHelper.getNic(this);
         String token = SharedPrefsHelper.getToken(this);
@@ -57,101 +143,152 @@ public class EVOwnerProfileActivity extends AppCompatActivity {
         String password = etPassword.getText().toString().trim();
 
         if (name.isEmpty() || email.isEmpty() || phone.isEmpty()) {
-            Toast.makeText(this, "All fields are required!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please fill all required fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        new UpdateProfileTask(nic, name, email, phone, password, token).execute();
+        if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            etEmail.setError("Invalid email format");
+            etEmail.requestFocus();
+            return;
+        }
+
+        if (!android.util.Patterns.PHONE.matcher(phone).matches()) {
+            etPhone.setError("Invalid phone number");
+            etPhone.requestFocus();
+            return;
+        }
+
+        btnUpdate.setEnabled(false);
+        btnUpdate.setText("Updating...");
+
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                try {
+                    JSONObject json = new JSONObject();
+                    json.put("name", name);
+                    json.put("email", email);
+                    json.put("phone", phone);
+
+                    String response = ApiClient.put("user/profile/" + nic, json.toString(), token);
+                    System.out.println("Update profile response: " + response);
+                    JSONObject res = new JSONObject(response);
+                    boolean success = res.optString("message").equalsIgnoreCase("Profile updated successfully");
+
+                    if (success) {
+                        // Update local SQLite
+                        EVOwnerDAO dao = new EVOwnerDAO(EVOwnerProfileActivity.this);
+                        dao.open();
+                        EVOwner updatedOwner = new EVOwner(nic, name, phone, email, true);
+                        dao.insertEVOwner(updatedOwner);
+                        dao.close();
+                    }
+
+                    return success;
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(Boolean success) {
+                btnUpdate.setEnabled(true);
+                btnUpdate.setText("Update Profile");
+
+                if (success) {
+                    Toast.makeText(EVOwnerProfileActivity.this, "✓ Profile updated successfully!", Toast.LENGTH_SHORT).show();
+                    tvProfileName.setText(name);
+                    tvInitials.setText(getInitials(name));
+                    etPassword.setText("");
+
+                    // Only update password if a new one is entered
+                    if (!password.isEmpty()) {
+                        updatePassword(nic, token, password);
+                    }
+
+                } else {
+                    Toast.makeText(EVOwnerProfileActivity.this, "✗ Update failed! Please try again.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }.execute();
     }
 
+    private void updatePassword(String nic, String token, String newPassword) {
+        new AsyncTask<Void, Void, Boolean>() {
+            @Override
+            protected Boolean doInBackground(Void... voids) {
+                try {
+                    JSONObject json = new JSONObject();
+                    json.put("NewPassword", newPassword);
+
+                    Future<String> future = ApiClient.post("user/" + nic + "/password", json.toString(), token);
+                    String response = future.get(); // safely call get() in background thread
+                    return response.contains("Password updated successfully");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
+            }
+
+            @Override
+            protected void onPostExecute(Boolean success) {
+                if (success) {
+                    Toast.makeText(EVOwnerProfileActivity.this, "Password updated successfully!", Toast.LENGTH_SHORT).show();
+                    etPassword.setText(""); // clear password field
+                } else {
+                    Toast.makeText(EVOwnerProfileActivity.this, "Failed to update password", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }.execute();
+    }
+
+    // -------------------- Deactivate Account --------------------
     private void confirmDeactivation() {
         new AlertDialog.Builder(this)
-                .setTitle("Deactivate Account")
-                .setMessage("Are you sure you want to deactivate your account?")
-                .setPositiveButton("Yes", (dialog, which) -> {
+                .setTitle("⚠️ Deactivate Account")
+                .setMessage("Are you sure you want to deactivate your account?\n\nThis will:\n• Disable your login access\n• Cancel all future bookings\n• Require back-office approval to reactivate\n\nThis action cannot be undone by yourself.")
+                .setPositiveButton("Yes, Deactivate", (dialog, which) -> {
                     String nic = SharedPrefsHelper.getNic(this);
                     String token = SharedPrefsHelper.getToken(this);
-                    new DeactivateTask(nic, token).execute();
+
+                    btnDeactivate.setEnabled(false);
+                    btnDeactivate.setText("Deactivating...");
+
+                    new AsyncTask<Void, Void, Boolean>() {
+                        @Override
+                        protected Boolean doInBackground(Void... voids) {
+                            try {
+                                String response = ApiClient.put("user/profile/" + nic + "/deactivate", "{}", token);
+                                return response.contains("Account deactivated successfully");
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                                return false;
+                            }
+                        }
+
+                        @Override
+                        protected void onPostExecute(Boolean success) {
+                            btnDeactivate.setEnabled(true);
+                            btnDeactivate.setText("Deactivate Account");
+
+                            if (success) {
+                                Toast.makeText(EVOwnerProfileActivity.this, "Account deactivated successfully.", Toast.LENGTH_LONG).show();
+                                SharedPrefsHelper.clear(EVOwnerProfileActivity.this);
+
+                                Intent i = new Intent(EVOwnerProfileActivity.this, LoginActivity.class);
+                                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(i);
+                                finish();
+                            } else {
+                                Toast.makeText(EVOwnerProfileActivity.this, "✗ Failed to deactivate account. Please try again.", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }.execute();
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
-    }
-
-    // AsyncTask for updating profile
-    private class UpdateProfileTask extends AsyncTask<Void, Void, Boolean> {
-        private final String nic, name, email, phone, password, token;
-
-        UpdateProfileTask(String nic, String name, String email, String phone, String password, String token) {
-            this.nic = nic;
-            this.name = name;
-            this.email = email;
-            this.phone = phone;
-            this.password = password;
-            this.token = token;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... voids) {
-            try {
-                JSONObject json = new JSONObject();
-                json.put("nic", nic);
-                json.put("name", name);
-                json.put("email", email);
-                json.put("phone", phone);
-                if (!password.isEmpty()) json.put("passwordHash", password);
-
-                String response = ApiClient.put("api/user/profile/" + nic, json.toString(), token);
-                return response.contains("Profile updated successfully");
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Boolean success) {
-            if (success) {
-                Toast.makeText(EVOwnerProfileActivity.this, "Profile updated successfully!", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(EVOwnerProfileActivity.this, "Update failed!", Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
-
-    // AsyncTask for deactivating account
-    private class DeactivateTask extends AsyncTask<Void, Void, Boolean> {
-        private final String nic, token;
-
-        DeactivateTask(String nic, String token) {
-            this.nic = nic;
-            this.token = token;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... voids) {
-            try {
-                String response = ApiClient.put("api/user/profile/" + nic + "/deactivate", "{}", token);
-                return response.contains("Account deactivated successfully");
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-        }
-
-        @Override
-        protected void onPostExecute(Boolean success) {
-            if (success) {
-                Toast.makeText(EVOwnerProfileActivity.this, "Account deactivated.", Toast.LENGTH_SHORT).show();
-                SharedPrefsHelper.clear(EVOwnerProfileActivity.this);
-                Intent i = new Intent(EVOwnerProfileActivity.this, LoginActivity.class);
-                i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(i);
-                finish();
-            } else {
-                Toast.makeText(EVOwnerProfileActivity.this, "Failed to deactivate account.", Toast.LENGTH_SHORT).show();
-            }
-        }
     }
 }

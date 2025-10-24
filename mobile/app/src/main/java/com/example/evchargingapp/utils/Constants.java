@@ -9,7 +9,8 @@ package com.example.evchargingapp.utils;
 
 public class Constants {
     // Base URL of backend service
-    public static final String BASE_URL = "http://10.0.2.2:5000/api/";
+//    public static final String BASE_URL = "http://10.0.2.2:5000/api/";
+    public static final String BASE_URL = "http://192.168.1.5:5001/api/";
 
     // API endpoints
     public static final String LOGIN_ENDPOINT = BASE_URL + "auth/login";

@@ -17,22 +17,44 @@ namespace Backend.Services
 			_repo = repo;
 			_stationRepo = stationRepo;
 		}
-		
+
 
 		public async Task<Booking> CreateAsync(Booking booking)
-		{
-			// Validation: reservation date/time within 7 days from booking date
-			var now = DateTime.UtcNow;
-			if (booking.StartTimeUtc < now.AddHours(1)) throw new ArgumentException("Start time must be at least 1 hour from now.");
-			if (booking.StartTimeUtc > now.AddDays(7)) throw new ArgumentException("Start time must be within 7 days.");
-			if (booking.EndTimeUtc <= booking.StartTimeUtc) throw new ArgumentException("End must be after start.");
+{
+    // Convert UTC start/end times to server local time
+    var startLocal = booking.StartTimeUtc.ToLocalTime();
+    var endLocal = booking.EndTimeUtc.ToLocalTime();
+    var nowLocal = DateTime.Now;
 
-			// Ensure station exists and is active
-			var station = await _stationRepo.GetByIdAsync(booking.StationId);
-			if (station is null || !station.IsActive) throw new ArgumentException("Invalid or inactive station.");
+    // Log local times for debugging
+    Console.WriteLine($"[BookingService] Selected start (local): {startLocal}");
+    Console.WriteLine($"[BookingService] Selected end (local): {endLocal}");
+    Console.WriteLine($"[BookingService] Current time (local): {nowLocal}");
 
-			return await _repo.CreateAsync(booking);
-		}
+    // Validation: at least 1 hour from now
+    if (startLocal < nowLocal.AddHours(1)) 
+        throw new ArgumentException($"Start time must be at least 1 hour from now. Selected local: {startLocal}, Current local: {nowLocal}");
+
+    // Validation: within 7 days
+    if (startLocal > nowLocal.AddDays(7)) 
+        throw new ArgumentException("Start time must be within 7 days.");
+
+    // Validation: end after start
+    if (endLocal <= startLocal) 
+        throw new ArgumentException("End must be after start.");
+
+    // Ensure station exists and is active
+    var station = await _stationRepo.GetByStationIdAsync(booking.StationId);
+    if (station is null || !station.IsActive) 
+        throw new ArgumentException("Invalid or inactive station.");
+
+    // Set Id to null for MongoDB auto-generation
+    booking.Id = null;
+
+    return await _repo.CreateAsync(booking);
+}
+
+
 
 
 		public Task<Booking?> GetByIdAsync(string id) => _repo.GetByIdAsync(id);
@@ -59,5 +81,3 @@ namespace Backend.Services
 		}
 	}
 }
-
-

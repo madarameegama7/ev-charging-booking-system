@@ -15,19 +15,31 @@ namespace Backend.Controllers
 		private readonly IBookingService _service;
 		public BookingController(IBookingService service) { _service = service; }
 
-        //add booking
+		//add booking
 		[HttpPost]
 		[Authorize(Roles = "Owner,Operator,Backoffice")]
 		public async Task<IActionResult> Create([FromBody] Booking booking)
 		{
-			var created = await _service.CreateAsync(booking);
-			return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+			try
+			{
+				var result = await _service.CreateAsync(booking);
+				return Ok(result); // returns JSON
+			}
+			catch (ArgumentException ex)
+			{
+				// Return structured JSON error instead of plain text
+				return BadRequest(new { error = ex.Message });
+			}
+			catch (Exception ex)
+			{
+				// General server error
+				return StatusCode(500, new { error = "Internal server error" });
+			}
 		}
 
 		//get all bookings
 		[HttpGet]
 		[Authorize(Roles = "Backoffice,Operator")]
-		[HttpGet]
 		public async Task<ActionResult<List<Booking>>> GetAll()
 		{
 			var bookings = await _service.GetAllAsync();
@@ -44,7 +56,7 @@ namespace Backend.Controllers
 
 		//get bookings by owner - owner, operator, backoffice
 		[HttpGet("owner/{nic}")]
-		[Authorize(Roles = "Owner,Operator,Backoffice")]
+
 		public async Task<IActionResult> GetByOwner(string nic) => Ok(await _service.GetByOwnerAsync(nic));
 
 		//get bookings by station - public
@@ -55,7 +67,7 @@ namespace Backend.Controllers
 			var bookings = await _service.GetByStationAsync(stationId);
 			return Ok(bookings);
 		}
-	 	//update booking - owner, operator, backoffice
+		//update booking - owner, operator, backoffice
 		[HttpPut("{id}")]
 		[Authorize(Roles = "Owner,Operator,Backoffice")]
 		public async Task<IActionResult> Update(string id, [FromBody] Booking update)
@@ -65,5 +77,3 @@ namespace Backend.Controllers
 		}
 	}
 }
-
-
