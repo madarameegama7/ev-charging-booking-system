@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { updateStation } from "../../api/stations";
+import { updateStation, setStationActive } from "../../api/stations";
 import { 
   MapPin, 
   Zap, 
@@ -9,7 +9,9 @@ import {
   Settings,
   Plus,
   Minus,
-  ArrowRight
+  ArrowRight,
+  Power,
+  AlertTriangle
 } from "lucide-react";
 
 export default function StationComponent({
@@ -20,6 +22,7 @@ export default function StationComponent({
   bookings = [],
 }) {
   const [isEditing, setIsEditing] = useState(false);
+  const [isChangingStatus, setIsChangingStatus] = useState(false);
   const currentStation = stations.find((s) => s.id === stationId);
 
   const changeSlots = async (delta) => {
@@ -75,6 +78,58 @@ export default function StationComponent({
     return "bg-red-500";
   };
 
+  // Check if station can be deactivated (no active bookings)
+  const canDeactivateStation = () => {
+    if (!currentStation) return false;
+    
+    const activeBookingsCount = (bookings || []).filter(b => {
+      const status = b.status ?? b.Status ?? 0;
+      return Number(status) === 0 || Number(status) === 1; // Pending or Approved
+    }).length;
+    
+    return activeBookingsCount === 0;
+  };
+
+  const handleToggleStationStatus = async () => {
+    if (!currentStation) return;
+
+    const newStatus = !currentStation.isActive;
+    
+    if (!newStatus) { // If deactivating
+      if (!canDeactivateStation()) {
+        alert("Cannot deactivate station. There are active bookings (pending or approved). Please cancel or complete all bookings first.");
+        return;
+      }
+      
+      const confirmDeactivate = window.confirm(
+        "Are you sure you want to deactivate this station? " +
+        "This will prevent new bookings until you reactivate it."
+      );
+      
+      if (!confirmDeactivate) return;
+    }
+
+    setIsChangingStatus(true);
+    try {
+      await setStationActive(currentStation.id, newStatus);
+      await refreshStations();
+      
+      if (newStatus) {
+        alert("Station activated successfully!");
+      } else {
+        alert("Station deactivated successfully!");
+      }
+    } catch (error) {
+      if (error.message === "Cannot deactivate with active bookings") {
+        alert("Cannot deactivate station. There are active bookings that need to be handled first.");
+      } else {
+        alert(error.message || "Failed to change station status");
+      }
+    } finally {
+      setIsChangingStatus(false);
+    }
+  };
+
   if (!currentStation) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -104,7 +159,6 @@ export default function StationComponent({
             </div>
             
             <div className="flex items-center gap-4 mt-4 text-sm">
-              
               <div className="flex items-center gap-1">
                 <Users className="h-4 w-4" />
                 <span>Operator: {operatorDisplay || 'Not assigned'}</span>
@@ -173,7 +227,29 @@ export default function StationComponent({
                 Remove Slot
               </button>
             </div>
-          
+            
+            {/* Station Status Toggle */}
+            <button
+              onClick={handleToggleStationStatus}
+              disabled={isChangingStatus || (!currentStation.isActive && !canDeactivateStation())}
+              className={`w-full flex items-center justify-center gap-2 rounded-lg p-3 transition-colors ${
+                currentStation.isActive
+                  ? 'bg-red-50 hover:bg-red-100 text-red-700 border border-red-200'
+                  : 'bg-green-50 hover:bg-green-100 text-green-700 border border-green-200'
+              } ${(isChangingStatus || (!currentStation.isActive && !canDeactivateStation())) ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {isChangingStatus ? (
+                <>
+                  <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  {currentStation.isActive ? 'Deactivating...' : 'Activating...'}
+                </>
+              ) : (
+                <>
+                  <Power className="h-4 w-4" />
+                  {currentStation.isActive ? 'Deactivate Station' : 'Activate Station'}
+                </>
+              )}
+            </button>
           </div>
         </div>
 
@@ -207,40 +283,71 @@ export default function StationComponent({
         </div>
       </div>
 
-    {/* Station Selector - Only show stations owned by current user */}
-<div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-  <h3 className="text-lg font-semibold text-gray-900 mb-4">My Stations</h3>
-  
-  {stations.length > 0 ? (
-    <>
-      <select
-        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent mb-3"
-        value={stationId}
-        onChange={(e) => {
-          setStationId(e.target.value);
-          localStorage.setItem("operatorStationId", e.target.value);
-        }}
-      >
-        <option value="">Select a station to manage...</option>
-        {stations.map((s) => (
-          <option key={s.id} value={s.id}>
-            {s.name} • {s.type} • {s.availableSlots} slots available
-          </option>
-        ))}
-      </select>
-      
-      <div className="text-sm text-gray-500">
-        You have access to {stations.length} station{stations.length !== 1 ? 's' : ''}
+      {/* Station Status Alert */}
+      {!currentStation.isActive && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="h-5 w-5 text-yellow-600" />
+            <div>
+              <h4 className="font-medium text-yellow-800">Station Inactive</h4>
+              <p className="text-yellow-700 text-sm">
+                This station is currently inactive. No new bookings can be made until you activate it.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Active Bookings Warning */}
+      {currentStation.isActive && !canDeactivateStation() && (
+        <div className="bg-orange-50 border border-orange-200 rounded-xl p-4">
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="h-5 w-5 text-orange-600" />
+            <div>
+              <h4 className="font-medium text-orange-800">Active Bookings Present</h4>
+              <p className="text-orange-700 text-sm">
+                This station has {capacity?.activeBookings || 0} active booking(s). 
+                You need to cancel or complete all bookings before deactivating the station.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Station Selector */}
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">My Stations</h3>
+        
+        {stations.length > 0 ? (
+          <>
+            <select
+              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent mb-3"
+              value={stationId}
+              onChange={(e) => {
+                setStationId(e.target.value);
+                localStorage.setItem("operatorStationId", e.target.value);
+              }}
+            >
+              <option value="">Select a station to manage...</option>
+              {stations.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name} • {s.type} • {s.availableSlots} slots • {s.isActive ? 'Active' : 'Inactive'}
+                </option>
+              ))}
+            </select>
+            
+            <div className="text-sm text-gray-500">
+              You have access to {stations.length} station{stations.length !== 1 ? 's' : ''}
+            </div>
+          </>
+        ) : (
+          <div className="text-center py-4">
+            <Users className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+            <p className="text-gray-500">No stations assigned to your account</p>
+            <p className="text-sm text-gray-400 mt-1">Contact administrator to get assigned to a station</p>
+          </div>
+        )}
       </div>
-    </>
-  ) : (
-    <div className="text-center py-4">
-      <Users className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-      <p className="text-gray-500">No stations assigned to your account</p>
-      <p className="text-sm text-gray-400 mt-1">Contact administrator to get assigned to a station</p>
-    </div>
-  )}
-</div>
 
       {/* Detailed Info Section */}
       <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">

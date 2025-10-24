@@ -67,7 +67,7 @@ export default function BookingComponent({
   const currentStation = stations?.find(s => s.id === stationId);
 
   const updateStatus = async (booking, newStatus) => {
-    if (!booking.id) {
+    if (!booking.bookingId) {
       alert("Missing booking ID");
       return;
     }
@@ -84,7 +84,7 @@ export default function BookingComponent({
     }
 
     try {
-      await updateBooking(booking.id, {
+      await updateBooking(booking.bookingId, {
         ...booking,
         status: newStatus
       });
@@ -175,7 +175,7 @@ export default function BookingComponent({
 
             return (
               <div
-                key={booking.id}
+                key={booking.bookingId}
                 className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow"
               >
                 <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -232,7 +232,7 @@ export default function BookingComponent({
                         className="flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
                       >
                         <CheckCircle className="h-4 w-4" />
-                        Approve
+                        Mark as Approved
                       </button>
                     )}
 
@@ -243,7 +243,7 @@ export default function BookingComponent({
                         className="flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
                       >
                         <CheckCircle className="h-4 w-4" />
-                        Complete
+                        Mark as Completed
                       </button>
                     )}
 
@@ -258,11 +258,6 @@ export default function BookingComponent({
                       </button>
                     )}
 
-                    {/* View Details Button - For all statuses */}
-                    <button className="flex items-center justify-center gap-2 px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm">
-                      <Calendar className="h-4 w-4" />
-                      Details
-                    </button>
                   </div>
                 </div>
               </div>
