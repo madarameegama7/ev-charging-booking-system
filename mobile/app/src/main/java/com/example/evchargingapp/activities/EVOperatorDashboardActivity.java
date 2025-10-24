@@ -1,10 +1,12 @@
 package com.example.evchargingapp.activities;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -19,6 +21,7 @@ public class EVOperatorDashboardActivity extends AppCompatActivity {
 
     private TextView tvWelcome, tvStationName, tvPendingCount, tvApprovedCount, tvCompletedCount;
     private LinearLayout btnScanQr, btnActiveBookings, btnCompleted, btnPendingBookings;
+    private ImageView btnLogout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +38,7 @@ public class EVOperatorDashboardActivity extends AppCompatActivity {
         btnActiveBookings = findViewById(R.id.btnActiveBookings);
         btnCompleted = findViewById(R.id.btnCompleted);
         btnPendingBookings = findViewById(R.id.btnPendingBookings);
+        btnLogout = findViewById(R.id.btnLogout);
 
         // Show Operator info
         String nic = SharedPrefsHelper.getNic(this);
@@ -65,6 +69,27 @@ public class EVOperatorDashboardActivity extends AppCompatActivity {
             Intent intent = new Intent(this, EVOperatorPendingBookingsActivity.class);
             startActivity(intent);
         });
+
+        // ✅ Logout button listener
+        btnLogout.setOnClickListener(v -> showLogoutConfirmation());
+    }
+
+    private void showLogoutConfirmation() {
+        new AlertDialog.Builder(this)
+                .setTitle("Logout")
+                .setMessage("Are you sure you want to log out?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    // Clear saved user session
+                    SharedPrefsHelper.clear(this);
+
+                    // Redirect to login screen
+                    Intent intent = new Intent(this, LoginActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .show();
     }
 
     // TODO: create function fetchCountsFromApi() to load counts from backend
