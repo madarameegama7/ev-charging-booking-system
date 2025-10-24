@@ -18,7 +18,7 @@ import com.example.evchargingapp.utils.SharedPrefsHelper;
 public class EVOperatorDashboardActivity extends AppCompatActivity {
 
     private TextView tvWelcome, tvStationName, tvPendingCount, tvApprovedCount, tvCompletedCount;
-    private LinearLayout btnScanQr, btnActiveBookings, btnCompleted;
+    private LinearLayout btnScanQr, btnActiveBookings, btnCompleted, btnPendingBookings;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +34,7 @@ public class EVOperatorDashboardActivity extends AppCompatActivity {
         btnScanQr = findViewById(R.id.btnScanQr);
         btnActiveBookings = findViewById(R.id.btnActiveBookings);
         btnCompleted = findViewById(R.id.btnCompleted);
+        btnPendingBookings = findViewById(R.id.btnPendingBookings);
 
         // Show Operator info
         String nic = SharedPrefsHelper.getNic(this);
@@ -57,6 +58,11 @@ public class EVOperatorDashboardActivity extends AppCompatActivity {
 
         btnCompleted.setOnClickListener(v -> {
             Intent intent = new Intent(this, EVOperatorCompletedBookingsActivity.class);
+            startActivity(intent);
+        });
+
+        btnPendingBookings.setOnClickListener(v -> {
+            Intent intent = new Intent(this, EVOperatorPendingBookingsActivity.class);
             startActivity(intent);
         });
     }
