@@ -56,9 +56,8 @@ public class EVOwnerDashboardActivity extends AppCompatActivity implements OnMap
         btnMyReservations = findViewById(R.id.btnMyReservations);
         btnProfile = findViewById(R.id.btnProfile);
 
-//        String nic = SharedPrefsHelper.getNic(this);
-//        tvWelcome.setText("Welcome, " + nic);
-        tvWelcome.setText("Welcome, Janudi");
+        String nic = SharedPrefsHelper.getNic(this);
+        tvWelcome.setText("Welcome, " + nic);
 
         btnLogout.setOnClickListener(v -> {
             SharedPrefsHelper.clear(this);
@@ -147,33 +146,28 @@ public class EVOwnerDashboardActivity extends AppCompatActivity implements OnMap
                             double lng = loc.optDouble("lng", 0.0);
 
                             String name = obj.optString("name", "Unknown Station");
+                            String type = obj.optString("type", "Unknown Type");
+                            int availableSlots = obj.optInt("availableSlots", 0);
 
-                            addStationMarker(name, new GeoLocation(lat, lng));
+                            addStationMarker(name, type, availableSlots, new GeoLocation(lat, lng));
 
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
                     }
 
-                    // Optional: focus camera on first station
+                    // focus camera on first station
                     if (stationsArray.length() > 0) {
-                        JSONObject first = null;
                         try {
-                            first = stationsArray.getJSONObject(0);
-                        } catch (JSONException e) {
-                            throw new RuntimeException(e);
+                            JSONObject first = stationsArray.getJSONObject(0);
+                            JSONObject loc = first.getJSONObject("location");
+                            double lat = loc.optDouble("lat", 0.0);
+                            double lng = loc.optDouble("lng", 0.0);
+                            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lng), 12f));
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
-                        JSONObject loc = null;
-                        try {
-                            loc = first.getJSONObject("location");
-                        } catch (JSONException e) {
-                            throw new RuntimeException(e);
-                        }
-                        double lat = loc.optDouble("lat", 0.0);
-                        double lng = loc.optDouble("lng", 0.0);
-                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lng), 12f));
                     }
-
                 });
 
             } catch (Exception e) {
@@ -196,8 +190,12 @@ public class EVOwnerDashboardActivity extends AppCompatActivity implements OnMap
     }
 
 
-    private void addStationMarker(String name, GeoLocation location) {
+    private void addStationMarker(String name, String type, int availableSlots, GeoLocation location) {
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-        googleMap.addMarker(new MarkerOptions().position(latLng).title(name));
+
+        googleMap.addMarker(new MarkerOptions()
+                .position(latLng)
+                .title(name)
+                .snippet("Type: " + type + "\nAvailable Slots: " + availableSlots));
     }
 }

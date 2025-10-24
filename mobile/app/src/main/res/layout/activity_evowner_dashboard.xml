@@ -153,15 +153,6 @@
             android:orientation="vertical"
             android:layout_marginBottom="16dp">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Quick Actions"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="@color/gray_900"
-                android:layout_marginBottom="12dp"/>
-
             <!-- View Stations Button -->
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/btnViewStations"
