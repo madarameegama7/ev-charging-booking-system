@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { listStations } from "../../api/stations";
+import { listStations,listStationsByOperator } from "../../api/stations";
 import { listBookingsByStation } from "../../api/bookings";
 import { Bell } from "lucide-react";
 import OperatorSidebar from "../../components/operator/OperatorSidebar";
@@ -20,7 +20,6 @@ export default function OperatorDashboard() {
   const sidebarItems = [
     { id: "station", label: "My Station" },
     { id: "bookings", label: "Bookings" },
-    { id: "actions", label: "Quick Actions" },
     { id: "profile", label: "Profile" },
   ];
 
@@ -31,77 +30,116 @@ export default function OperatorDashboard() {
     window.location.href = "/login";
   };
 
-  // Fetch stations
-  useEffect(() => {
-    (async () => {
-      const s = await listStations();
-      setStations(s);
-      // Auto-select station assigned to this operator if available
-      const role = localStorage.getItem("role");
-      const nic = localStorage.getItem("nic");
+// Fetch stations - Only get stations owned by current operator
+useEffect(() => {
+  (async () => {
+    const role = localStorage.getItem("role");
+    const nic = localStorage.getItem("nic");
+    
+    try {
       if (role === "Operator" && nic) {
-        // try to find station where operatorNic matches current operator NIC
-        const assigned = s.find((st) => (st.operatorNic ?? st.operatorNIC ?? '') === nic);
-        if (assigned) {
-          setStationId(assigned.id);
-          localStorage.setItem("operatorStationId", assigned.id);
-          return;
+        // Fetch all stations and filter by operator NIC
+        const allStations = await listStations();
+        const operatorStations = allStations.filter(station => 
+          station.operatorNic === nic
+        );
+        setStations(operatorStations);
+        
+        if (operatorStations.length > 0) {
+          // Use previously selected station or default to first one
+          const savedStationId = localStorage.getItem("operatorStationId");
+          const validSavedStation = operatorStations.find(s => s.id === savedStationId);
+          const stationToUse = validSavedStation || operatorStations[0];
+          
+          setStationId(stationToUse.id);
+          localStorage.setItem("operatorStationId", stationToUse.id);
+        }
+      } else {
+        // For non-operator roles, show all stations
+        const allStations = await listStations();
+        setStations(allStations);
+        
+        if (allStations.length > 0 && (!stationId || stationId === "")) {
+          const firstId = allStations[0].id;
+          setStationId(firstId);
+          localStorage.setItem("operatorStationId", firstId);
         }
       }
-
-      // If operator hasn't selected a station yet, auto-select the first available station
-      if ((!stationId || stationId === "") && s && s.length > 0) {
-        const firstId = s[0].id;
-        setStationId(firstId);
-        localStorage.setItem("operatorStationId", firstId);
-      }
-    })();
-  }, []);
+    } catch (error) {
+      console.error('Error fetching stations:', error);
+    }
+  })();
+}, []);
 
   // Fetch bookings for selected station
   useEffect(() => {
     (async () => {
-      if (!stationId) return;
+      if (!stationId) {
+        console.log("No stationId selected, skipping bookings fetch");
+        return;
+      }
+      
       setLoading(true);
+      console.log("Fetching bookings for station:", stationId);
+      
       try {
-        // First try using the station id (normal case)
-        let all = await listBookingsByStation(stationId);
-
-        // Fallback: some bookings were stored using station name instead of id.
-        // If we got no results, try querying by the station name.
-        if (Array.isArray(all) && all.length === 0) {
-          const st = stations.find((s) => s.id === stationId);
-          if (st && st.name) {
-            const byName = await listBookingsByStation(st.name);
-            all = byName;
-          }
-        }
-
-        // Final tolerant fallback: fetch all bookings and filter those whose stationId
-        // looks like the station name (covers legacy data where stationId stores a name)
-        if (Array.isArray(all) && all.length === 0) {
-          try {
-            const allBookings = await import('../../api/bookings').then(m => m.listAllBookings());
-            const st = stations.find((s) => s.id === stationId);
-            if (st && st.name) {
-              const name = st.name.toLowerCase();
-              const filtered = (allBookings || []).filter(b => {
-                const sid = (b.stationId ?? b.stationID ?? b.StationId ?? '') + '';
-                return sid.toLowerCase() === name || sid.toLowerCase().includes(name);
-              });
-              all = filtered;
+        let allBookings = [];
+        
+        // Method 1: Try with station ID directly
+        try {
+          allBookings = await listBookingsByStation(stationId);
+          console.log("Bookings fetched by station ID:", allBookings);
+        } catch (error) {
+          console.warn("Failed to fetch by station ID, trying station name:", error);
+          
+          // Method 2: Try with station name
+          const currentStation = stations.find((s) => s.id === stationId);
+          if (currentStation && currentStation.name) {
+            try {
+              allBookings = await listBookingsByStation(currentStation.name);
+              console.log("Bookings fetched by station name:", allBookings);
+            } catch (nameError) {
+              console.warn("Failed to fetch by station name:", nameError);
             }
-          } catch (e) {
-            console.warn('Tolerant booking fallback failed', e);
           }
         }
 
-        setBookings(all);
+        // Method 3: If still no bookings, try with stationId from station object
+        if (Array.isArray(allBookings) && allBookings.length === 0) {
+          const currentStation = stations.find((s) => s.id === stationId);
+          if (currentStation && currentStation.stationId) {
+            try {
+              allBookings = await listBookingsByStation(currentStation.stationId);
+              console.log("Bookings fetched by station.stationId:", allBookings);
+            } catch (stationIdError) {
+              console.warn("Failed to fetch by station.stationId:", stationIdError);
+            }
+          }
+        }
+
+        setBookings(Array.isArray(allBookings) ? allBookings : []);
+        
+      } catch (error) {
+        console.error('Error fetching bookings:', error);
+        setBookings([]);
       } finally {
         setLoading(false);
       }
     })();
-  }, [stationId]);
+  }, [stationId, stations]);
+
+  const refreshBookings = async () => {
+    if (!stationId) return;
+    setLoading(true);
+    try {
+      const updatedBookings = await listBookingsByStation(stationId);
+      setBookings(updatedBookings);
+    } catch (error) {
+      console.error('Error refreshing bookings:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -154,7 +192,7 @@ export default function OperatorDashboard() {
             />
           )}
 
-          {activeTab === "actions" && <QuickActionComponent />}
+          {activeTab === "actions"}
         </main>
       </div>
     </div>

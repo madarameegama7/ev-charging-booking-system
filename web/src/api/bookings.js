@@ -7,7 +7,7 @@ export async function listAllBookings() {
 }
 
 export async function listBookingsByStation(stationId) {
-	const res = await authFetch(`/api/Booking/station/${encodeURIComponent(stationId)}`);
+	const res = await authFetch(`/api/Booking/station/${stationId}`);
 	if (!res.ok) throw new Error('Failed to load station bookings');
 	return res.json();
 }

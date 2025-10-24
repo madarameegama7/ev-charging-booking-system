@@ -15,7 +15,6 @@ export default function OperatorSidebar({ activeTab, setActiveTab }) {
     { id: "home", label: "Home", icon: House },
     { id: "station", label: "My Station", icon: MapPin },
     { id: "bookings", label: "Bookings", icon: Calendar },
-    { id: "actions", label: "Quick Actions", icon: Zap },
     { id: "profile", label: "Profile", icon: User },
   ];
 

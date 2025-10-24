@@ -6,6 +6,12 @@ export async function listStations() {
 	return res.json();
 }
 
+
+export async function listStationsByOperator(operatorNic) {
+	const stations = await listStations();
+	return stations.filter(station => station.operatorNic === operatorNic);
+}
+
 export async function createStation(payload) {
 	const res = await authFetch('/api/Station', { method: 'POST', body: JSON.stringify(payload) });
 	if (res.status === 409) throw new Error('Conflict');
