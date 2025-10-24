@@ -16,6 +16,14 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import android.widget.ImageView;
+import android.widget.TextView;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
+
+
 
 import com.example.evchargingapp.R;
 import com.example.evchargingapp.adapters.BookingAdapter;
@@ -73,7 +81,7 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
 
                 @Override
                 public void onShowQR(Booking booking) {
-                    showQrDialog(booking.getBookingId());
+                    showQrDialog(booking);
                 }
             });
             rvBookings.setAdapter(adapter);
@@ -114,7 +122,7 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
                 Date start = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).parse(b.getStartTimeUtc());
                 if (upcoming && start.after(now)) {
                     displayedList.add(b);
-                }else if (!upcoming && start.before(now)) {
+                } else if (!upcoming && start.before(now)) {
                     displayedList.add(b);
                 }
             } catch (Exception ignored) {
@@ -136,10 +144,8 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
         EditText etEndTime = formView.findViewById(R.id.etEndTime);
         Button btnSubmitBooking = formView.findViewById(R.id.btnSubmitBooking);
 
-        // Map name -> ID must be accessible in submit button
-        final Map<String, String> nameToId = new HashMap<>();
+        final Map<String, String> nameToId = new HashMap<>(); // keep only this
 
-        // Fetch stations
         executor.execute(() -> {
             try {
                 String token = SharedPrefsHelper.getToken(this);
@@ -148,10 +154,11 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
 
                 for (int i = 0; i < stations.length(); i++) {
                     JSONObject s = stations.getJSONObject(i);
-                    String id = s.optString("id", s.optString("_id", ""));
+                    String id = s.getString("stationId"); // server ID
                     String name = s.getString("name");
+
                     stationNames.add(name);
-                    nameToId.put(name, id);
+                    nameToId.put(name, id); // fill the outer map
                 }
 
                 runOnUiThread(() -> {
@@ -159,28 +166,10 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
                             android.R.layout.simple_spinner_item, stationNames);
                     adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                     spinnerStation.setAdapter(adapterSpinner);
-
-                    // If editing, pre-select current station
-                    if (booking != null) {
-                        String currentStationName = null;
-                        for (Map.Entry<String, String> entry : nameToId.entrySet()) {
-                            if (entry.getValue().equals(booking.getStationId())) {
-                                currentStationName = entry.getKey();
-                                break;
-                            }
-                        }
-                        if (currentStationName != null) {
-                            int pos = stationNames.indexOf(currentStationName);
-                            if (pos >= 0) spinnerStation.setSelection(pos);
-                        }
-
-                        etStartTime.setText(booking.getStartTimeUtc());
-                        etEndTime.setText(booking.getEndTimeUtc());
-                    }
                 });
+
             } catch (Exception e) {
                 e.printStackTrace();
-                runOnUiThread(() -> Toast.makeText(this, "Failed to fetch stations: " + e.getMessage(), Toast.LENGTH_LONG).show());
             }
         });
 
@@ -189,7 +178,6 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
 
         AlertDialog dialog = new AlertDialog.Builder(this).setView(formView).create();
         dialog.show();
-
         btnSubmitBooking.setOnClickListener(v -> {
             String stationName = (String) spinnerStation.getSelectedItem();
             if (stationName == null || !nameToId.containsKey(stationName)) {
@@ -207,26 +195,45 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
             }
 
             try {
-                // Parse dates
-                SimpleDateFormat sdfInput = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
-                Date startDate = sdfInput.parse(start);
-                Date endDate = sdfInput.parse(end);
+                // Parse local dates
+                SimpleDateFormat sdfLocal = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+                Date startDate = sdfLocal.parse(start);
+                Date endDate = sdfLocal.parse(end);
 
-                // Convert to UTC ISO 8601 format
+                // Convert to UTC
                 SimpleDateFormat sdfUtc = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
                 sdfUtc.setTimeZone(TimeZone.getTimeZone("UTC"));
                 String startUtc = sdfUtc.format(startDate);
                 String endUtc = sdfUtc.format(endDate);
 
-                Calendar limit = Calendar.getInstance();
-                limit.add(Calendar.DAY_OF_YEAR, 7);
+                // Log for debugging
+                Log.d("BookingDebug", "Selected Start (local): " + start);
+                Log.d("BookingDebug", "Selected End   (local): " + end);
+                Log.d("BookingDebug", "Start UTC sent : " + startUtc);
+                Log.d("BookingDebug", "End UTC sent   : " + endUtc);
+                Log.d("BookingDebug", "Current UTC time: " + sdfUtc.format(new Date()));
 
-                if (startDate.after(limit.getTime()) || endDate.after(limit.getTime())) {
-                    Toast.makeText(this, "Both start and end times must be within 7 days from now", Toast.LENGTH_LONG).show();
+                // Validate 1-hour rule before sending
+                Date nowUtc = new Date();
+                Calendar oneHourLater = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+                oneHourLater.setTime(nowUtc);
+                oneHourLater.add(Calendar.HOUR_OF_DAY, 1);
+
+                if (startDate.before(oneHourLater.getTime())) {
+                    Toast.makeText(this, "Start time must be at least 1 hour from now", Toast.LENGTH_LONG).show();
                     return;
                 }
 
-                // Show summary dialog
+                // Optional: validate within 7 days
+                Calendar limit = Calendar.getInstance();
+                limit.add(Calendar.DAY_OF_YEAR, 7);
+                if (startDate.after(limit.getTime()) || endDate.after(limit.getTime())) {
+                    Toast.makeText(this, "Both start and end times must be within 7 days from now", Toast.LENGTH_LONG)
+                            .show();
+                    return;
+                }
+
+                // Show confirmation dialog
                 String summary = "📍 Station: " + stationName
                         + "\n\n🕒 Start: " + startUtc
                         + "\n⏰ End: " + endUtc
@@ -250,6 +257,7 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
                 Toast.makeText(this, "Invalid date format", Toast.LENGTH_SHORT).show();
             }
         });
+
     }
 
     // Pick date and time, store in local format
@@ -260,14 +268,26 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
             new TimePickerDialog(this, (v, hour, min) -> {
                 calendar.set(Calendar.HOUR_OF_DAY, hour);
                 calendar.set(Calendar.MINUTE, min);
-                target.setText(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).format(calendar.getTime()));
+                calendar.set(Calendar.SECOND, 0);
+                calendar.set(Calendar.MILLISECOND, 0);
+
+                // Format in local time
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+                sdf.setTimeZone(TimeZone.getDefault()); // ensures local timezone
+                target.setText(sdf.format(calendar.getTime()));
+
+                Log.d("BookingDebug", "Selected (local): " + target.getText().toString());
+
             }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show();
         }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show();
     }
 
-    private void toggleLoading(boolean isLoading) {
-        progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
-        btnAddBooking.setEnabled(!isLoading);
+    private void toggleLoading(boolean show) {
+        if (progressBar != null) {
+            progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
+        // Optionally disable user interaction while loading
+        getWindow().getDecorView().setEnabled(!show);
     }
 
     private void fetchBookings() {
@@ -296,11 +316,12 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
                     JSONObject obj = resp.getJSONObject(i);
                     Booking b = new Booking();
                     b.setBookingId(obj.optString("id"));
+                    b.setBookingId(obj.optString("bookingId", obj.optString("BookingId", "")));
                     b.setStationId(obj.optString("stationId", obj.optString("StationId", "")));
                     b.setOwnerNic(nic);
-                    b.setStartTimeUtc(obj.optString("start"));
-                    b.setEndTimeUtc(obj.optString("end"));
-                    b.setStatus(obj.optString("status"));
+                    b.setStartTimeUtc(obj.optString("startTimeUtc"));
+                    b.setEndTimeUtc(obj.optString("endTimeUtc"));
+                    b.setStatus(obj.optInt("status"));
                     bookingList.add(b);
                     bookingDAO.insertOrUpdateBooking(b); // cache locally
                 }
@@ -308,63 +329,76 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
                 runOnUiThread(() -> filterBookings(tabLayout.getSelectedTabPosition() == 0));
 
             } catch (Exception e) {
-                runOnUiThread(()
-                        -> Toast.makeText(this, "Error fetching bookings", Toast.LENGTH_SHORT).show()
-                );
+                runOnUiThread(() -> Toast.makeText(this, "Error fetching bookings", Toast.LENGTH_SHORT).show());
             } finally {
                 bookingDAO.close();
             }
         });
     }
 
-    private void createBooking(String stationId, String start, String end) {
-        toggleLoading(true);
-        executor.execute(() -> {
-            try {
-                String ownerNic = SharedPrefsHelper.getNic(this);
-                String token = SharedPrefsHelper.getToken(this);
-                JSONObject response = BookingApi.createBooking(stationId, ownerNic, start, end, token);
+  private void createBooking(String stationId, String start, String end) {
+    toggleLoading(true);
+    executor.execute(() -> {
+        try {
+            String ownerNic = SharedPrefsHelper.getNic(this);
+            String token = SharedPrefsHelper.getToken(this);
 
-                runOnUiThread(() -> {
-                    toggleLoading(false);
-                    fetchBookings();
-                    Toast.makeText(this, "Booking created", Toast.LENGTH_SHORT).show();
-                });
-            } catch (Exception e) {
-                Log.e("CreateBookingError", "Error creating booking", e);
-                runOnUiThread(() -> {
-                    toggleLoading(false);
-                    Toast.makeText(this, "Failed to create booking: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
-            }
-        });
-    }
+            // Build JSON object
+            JSONObject json = new JSONObject();
+            json.put("stationId", stationId);
+            json.put("ownerNic", ownerNic);
+            json.put("startTimeUtc", start);
+            json.put("endTimeUtc", end);
 
-    private void modifyBooking(String bookingId, String stationId, String start, String end) {
-        toggleLoading(true);
-        executor.execute(() -> {
-            try {
-                String token = SharedPrefsHelper.getToken(this);
-                JSONObject update = new JSONObject();
-                update.put("stationId", stationId);
-                update.put("startTimeUtc", start);
-                update.put("endTimeUtc", end);
+            // Call API
+            JSONObject response = BookingApi.createBooking(json, token);
 
-                BookingApi.updateBooking(bookingId, update, token);
+            runOnUiThread(() -> {
+                toggleLoading(false);
+                fetchBookings();
+                Toast.makeText(this, "Booking created", Toast.LENGTH_SHORT).show();
+            });
+        } catch (Exception e) {
+            Log.e("CreateBookingError", "Error creating booking", e);
+            runOnUiThread(() -> {
+                toggleLoading(false);
+                Toast.makeText(this, "Failed to create booking: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            });
+        }
+    });
+}
 
-                runOnUiThread(() -> {
-                    toggleLoading(false);
-                    fetchBookings();
-                    Toast.makeText(this, "Booking modified", Toast.LENGTH_SHORT).show();
-                });
-            } catch (Exception e) {
-                runOnUiThread(() -> {
-                    toggleLoading(false);
-                    Toast.makeText(this, "Failed to modify booking", Toast.LENGTH_SHORT).show();
-                });
-            }
-        });
-    }
+ 
+private void modifyBooking(String bookingId, String stationId, String start, String end) {
+    toggleLoading(true);
+    executor.execute(() -> {
+        try {
+            String token = SharedPrefsHelper.getToken(this);
+
+            // Build JSON object
+            JSONObject update = new JSONObject();
+            update.put("stationId", stationId);
+            update.put("startTimeUtc", start);
+            update.put("endTimeUtc", end);
+
+            // Call API
+            JSONObject response = BookingApi.updateBooking(bookingId, update, token);
+
+            runOnUiThread(() -> {
+                toggleLoading(false);
+                fetchBookings();
+                Toast.makeText(this, "Booking modified", Toast.LENGTH_SHORT).show();
+            });
+        } catch (Exception e) {
+            Log.e("ModifyBookingError", "Error modifying booking", e);
+            runOnUiThread(() -> {
+                toggleLoading(false);
+                Toast.makeText(this, "Failed to modify booking", Toast.LENGTH_SHORT).show();
+            });
+        }
+    });
+}
+
 
     private void showCancelConfirmation(Booking booking) {
         new AlertDialog.Builder(this)
@@ -391,22 +425,67 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
         });
     }
 
-    private void showQrDialog(String bookingId) {
+ private void showQrDialog(Booking booking) {
+    try {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_booking_qr, null);
+        builder.setView(dialogView);
+
+        ImageView ivQr = dialogView.findViewById(R.id.ivQrCode);
+        TextView tvBookingId = dialogView.findViewById(R.id.tvBookingId);
+        TextView tvStationName = dialogView.findViewById(R.id.tvStationName);
+        TextView tvTimeRange = dialogView.findViewById(R.id.tvTimeRange);
+        TextView tvStatus = dialogView.findViewById(R.id.tvStatus);
+        Button btnClose = dialogView.findViewById(R.id.btnCloseQr);
+
+        // Generate QR code
+        Bitmap qrBitmap = new com.journeyapps.barcodescanner.BarcodeEncoder()
+                .encodeBitmap(booking.getBookingId(),
+                        com.google.zxing.BarcodeFormat.QR_CODE, 400, 400);
+        ivQr.setImageBitmap(qrBitmap);
+
+        // Fill details
+        tvBookingId.setText("Booking ID: " + booking.getBookingId());
+        tvStationName.setText("Station: " + booking.getStationId());
+        tvTimeRange.setText(
+                "Start: " + formatUtcToLocal(booking.getStartTimeUtc()) +
+                        "\nEnd: " + formatUtcToLocal(booking.getEndTimeUtc())
+        );
+
+        tvStatus.setText("Status: " + booking.getStatusText());
+
+        AlertDialog dialog = builder.create();
+
+        btnClose.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
+
+    } catch (Exception e) {
+        Toast.makeText(this, "Failed to generate QR", Toast.LENGTH_SHORT).show();
+        e.printStackTrace();
+    }
+}
+
+
+    private String formatUtcToLocal(String utcDateStr) {
         try {
-            BarcodeEncoder encoder = new BarcodeEncoder();
-            Bitmap bitmap = encoder.encodeBitmap(bookingId, com.google.zxing.BarcodeFormat.QR_CODE, 400, 400);
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Booking QR Code")
-                    .setPositiveButton("Close", null)
-                    .setView(new androidx.appcompat.widget.AppCompatImageView(this) {
-                        {
-                            setImageBitmap(bitmap);
-                            setPadding(32, 32, 32, 32);
-                        }
-                    })
-                    .show();
+            // 1. Parse the UTC date string
+            SimpleDateFormat sdfUtc = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+            sdfUtc.setTimeZone(TimeZone.getTimeZone("UTC"));
+            Date date = sdfUtc.parse(utcDateStr);
+
+            // 2. Format it to local, user-friendly string
+            SimpleDateFormat sdfLocal = new SimpleDateFormat("MMM dd, yyyy hh:mm a", Locale.US);
+            sdfLocal.setTimeZone(TimeZone.getDefault()); // converts to local timezone
+            return sdfLocal.format(date);
+
         } catch (Exception e) {
-            Toast.makeText(this, "Failed to generate QR", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+            return utcDateStr; // fallback
         }
     }
+
+
+
+
 }
