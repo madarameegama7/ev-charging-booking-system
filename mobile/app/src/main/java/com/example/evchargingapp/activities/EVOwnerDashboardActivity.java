@@ -1,3 +1,9 @@
+/**
+ * Activity: EVOwnerDashboardActivity
+ * Description: Displays the EV Owner Dashboard with welcome message,
+ * booking statistics, quick action buttons, and nearby stations map.
+ */
+
 package com.example.evchargingapp.activities;
 
 import android.content.Intent;
@@ -10,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.evchargingapp.R;
 import com.example.evchargingapp.database.BookingDAO;
 import com.example.evchargingapp.models.Booking;
+import com.example.evchargingapp.api.BookingApi;
 import com.example.evchargingapp.models.GeoLocation;
 import com.example.evchargingapp.utils.SharedPrefsHelper;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -24,6 +31,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class EVOwnerDashboardActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -63,14 +73,60 @@ public class EVOwnerDashboardActivity extends AppCompatActivity implements OnMap
     }
 
     private void loadBookingStats() {
-        BookingDAO bookingDAO = new BookingDAO(this);
-        bookingDAO.open();
-        List<Booking> bookings = bookingDAO.getBookingsByOwner(SharedPrefsHelper.getNic(this));
-        int pending = 0, approved = 0;
-        Date now = new Date();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+        new Thread(() -> {
+            try {
+                String nic = SharedPrefsHelper.getNic(this);
+                String token = SharedPrefsHelper.getToken(this);
+                JSONArray bookingsJson = BookingApi.getBookingsByOwner(nic, token);
 
-        bookingDAO.close();
+                BookingDAO bookingDAO = new BookingDAO(this);
+                bookingDAO.open();
+                bookingDAO.deleteAllBookings(); // optional: refresh local DB
+
+                int pending = 0, approved = 0;
+
+                for (int i = 0; i < bookingsJson.length(); i++) {
+                    JSONObject obj = bookingsJson.getJSONObject(i);
+                    Booking b = new Booking();
+                    b.setBookingId(obj.getString("bookingId"));
+                    b.setOwnerNic(obj.getString("ownerNic"));
+                    b.setStationId(obj.getString("stationId"));
+                    b.setStartTimeUtc(obj.getString("start"));
+                    b.setEndTimeUtc(obj.getString("end"));
+                    Object statusObj = obj.get("status");
+                    int status = 0;
+
+                    if (statusObj instanceof Integer) {
+                        status = (Integer) statusObj;
+                    } else if (statusObj instanceof String) {
+                        String s = ((String) statusObj).toLowerCase(Locale.ROOT);
+                        if (s.equals("pending")) status = 0;
+                        else if (s.equals("approved")) status = 1;
+                        else if (s.equals("cancelled")) status = 2;
+                        else if (s.equals("completed")) status = 3;
+                    }
+                    b.setStatus(status);
+
+
+                    bookingDAO.insertOrUpdateBooking(b);
+
+                    if (b.getStatus() == 0) pending++;
+                    else if (b.getStatus() == 1) approved++;
+                }
+
+                int finalPending = pending;
+                int finalApproved = approved;
+                runOnUiThread(() -> {
+                    tvPendingCount.setText(String.valueOf(finalPending));
+                    tvApprovedCount.setText(String.valueOf(finalApproved));
+                });
+
+                bookingDAO.close();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     private void setupMap() {

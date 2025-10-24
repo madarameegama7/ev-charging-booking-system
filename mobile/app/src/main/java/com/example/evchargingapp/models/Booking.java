@@ -15,7 +15,7 @@ public class Booking {
     @SerializedName("stationId")
     private String stationId;
 
-    @SerializedName("ownerNIC")
+    @SerializedName("ownerNic")
     private String ownerNic;
 
     @SerializedName("startTimeUtc")

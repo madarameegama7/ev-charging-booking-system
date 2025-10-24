@@ -26,7 +26,7 @@ public class BookingDatabaseHelper extends SQLiteOpenHelper {
                     COLUMN_OWNER_NIC + " TEXT, " +
                     COLUMN_START + " TEXT, " +
                     COLUMN_END + " TEXT, " +
-                    COLUMN_STATUS + " TEXT" +
+                    COLUMN_STATUS + " INTEGER" +
                     ");";
 
     public BookingDatabaseHelper(Context context) {
