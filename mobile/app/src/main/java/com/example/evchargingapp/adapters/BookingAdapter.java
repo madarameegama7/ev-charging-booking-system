@@ -1,12 +1,12 @@
 package com.example.evchargingapp.adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
-import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.evchargingapp.R;
@@ -41,24 +41,33 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.ViewHold
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         Booking b = bookings.get(position);
+
+        // Display booking details
         holder.tvStationId.setText("Station: " + b.getStationId());
-        holder.tvTimeRange.setText("Start: " + b.getStartTimeUtc() + " | End: " + b.getEndTimeUtc());
-        holder.tvStatus.setText(b.getStatus());
+        holder.tvBookingId.setText("Booking ID: " + b.getBookingId());
+        holder.tvTimeRange.setText("Start: " + b.getStartTimeUtc() + "\nEnd: " + b.getEndTimeUtc());
+        holder.tvStatus.setText(b.getStatusText());
 
-        int color;
-        switch (b.getStatus()) {
-            case "Approved": color = ContextCompat.getColor(context, android.R.color.holo_green_light); break;
-            case "Cancelled": color = ContextCompat.getColor(context, android.R.color.holo_red_light); break;
-            default: color = ContextCompat.getColor(context, android.R.color.holo_orange_light);
-        }
-        holder.tvStatus.setTextColor(color);
+        // Modify button: enabled only for pending bookings
+        holder.btnModify.setEnabled("Pending".equals(b.getStatusText()));
+        holder.btnModify.setOnClickListener(v -> {
+            Log.d("BookingAdapter", "Modify clicked for bookingId: " + b.getBookingId());
+            listener.onModify(b);
+        });
 
-        holder.btnModify.setEnabled("Pending".equals(b.getStatus()));
-        holder.btnModify.setOnClickListener(v -> listener.onModify(b));
-        holder.btnCancel.setEnabled(!"Cancelled".equals(b.getStatus()));
-        holder.btnCancel.setOnClickListener(v -> listener.onCancel(b));
-        holder.btnQR.setEnabled("Approved".equals(b.getStatus()));
-        holder.btnQR.setOnClickListener(v -> listener.onShowQR(b));
+        // Cancel button: enabled unless already cancelled
+        holder.btnCancel.setEnabled(!"Cancelled".equals(b.getStatusText()));
+        holder.btnCancel.setOnClickListener(v -> {
+            Log.d("BookingAdapter", "Cancel clicked for bookingId: " + b.getBookingId());
+            listener.onCancel(b);
+        });
+
+        // QR button: enabled for approved bookings
+        holder.btnQR.setEnabled("Approved".equals(b.getStatusText()));
+        holder.btnQR.setOnClickListener(v -> {
+            Log.d("BookingAdapter", "QR clicked for bookingId: " + b.getBookingId());
+            listener.onShowQR(b);
+        });
     }
 
     @Override
@@ -67,12 +76,13 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.ViewHold
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvStationId, tvTimeRange, tvStatus;
+        TextView tvStationId, tvBookingId, tvTimeRange, tvStatus;
         Button btnModify, btnCancel, btnQR;
 
         ViewHolder(View itemView) {
             super(itemView);
             tvStationId = itemView.findViewById(R.id.tvStationId);
+            tvBookingId = itemView.findViewById(R.id.tvBookingId);
             tvTimeRange = itemView.findViewById(R.id.tvTimeRange);
             tvStatus = itemView.findViewById(R.id.tvStatus);
             btnModify = itemView.findViewById(R.id.btnModify);

@@ -69,7 +69,7 @@ public class BookingDAO {
                         b.setOwnerNic(cursor.getString(cursor.getColumnIndexOrThrow(BookingDatabaseHelper.COLUMN_OWNER_NIC)));
                         b.setStartTimeUtc(cursor.getString(cursor.getColumnIndexOrThrow(BookingDatabaseHelper.COLUMN_START)));
                         b.setEndTimeUtc(cursor.getString(cursor.getColumnIndexOrThrow(BookingDatabaseHelper.COLUMN_END)));
-                        b.setStatus(cursor.getString(cursor.getColumnIndexOrThrow(BookingDatabaseHelper.COLUMN_STATUS)));
+                        b.setStatus(cursor.getInt(cursor.getColumnIndexOrThrow(BookingDatabaseHelper.COLUMN_STATUS)));
                         list.add(b);
                     } while (cursor.moveToNext());
                 }

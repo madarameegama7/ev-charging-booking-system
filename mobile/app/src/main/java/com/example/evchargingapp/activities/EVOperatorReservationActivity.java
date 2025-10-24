@@ -63,7 +63,7 @@ public class EVOperatorReservationActivity extends AppCompatActivity {
                     b.setOwnerNic(obj.optString("ownerNic"));
                     b.setStartTimeUtc(obj.optString("startTimeUtc"));
                     b.setEndTimeUtc(obj.optString("endTimeUtc"));
-                    b.setStatus(obj.optString("status"));
+                    b.setStatus(obj.optInt("status"));
                     bookingList.add(b);
                 }
 
@@ -97,19 +97,18 @@ public class EVOperatorReservationActivity extends AppCompatActivity {
             View item = lvBookings.getChildAt(i);
             Booking b = bookingList.get(i);
             int color;
-            switch (b.getStatus()) {
-                case "Approved":
-                    color = ContextCompat.getColor(this, android.R.color.holo_green_light);
-                    break;
-                case "Cancelled":
-                    color = ContextCompat.getColor(this, android.R.color.holo_red_light);
-                    break;
-                default:
-                    color = ContextCompat.getColor(this, android.R.color.holo_orange_light);
+            int status = b.getStatus();
+            if (status == 1) { // Approved
+                color = ContextCompat.getColor(this, android.R.color.holo_green_light);
+            } else if (status == 2) { // Cancelled
+                color = ContextCompat.getColor(this, android.R.color.holo_red_light);
+            } else { // Pending / others
+                color = ContextCompat.getColor(this, android.R.color.holo_orange_light);
             }
             item.setBackgroundColor(color);
         }
     }
+
 
     private void showActionDialog(Booking booking) {
         String[] options = {"Approve", "Cancel", "Close"};

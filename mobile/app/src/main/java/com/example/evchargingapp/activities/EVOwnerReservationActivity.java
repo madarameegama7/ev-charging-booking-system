@@ -16,6 +16,14 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import android.widget.ImageView;
+import android.widget.TextView;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
+
+
 
 import com.example.evchargingapp.R;
 import com.example.evchargingapp.adapters.BookingAdapter;
@@ -73,7 +81,7 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
 
                 @Override
                 public void onShowQR(Booking booking) {
-                    showQrDialog(booking.getBookingId());
+                    showQrDialog(booking);
                 }
             });
             rvBookings.setAdapter(adapter);
@@ -308,11 +316,12 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
                     JSONObject obj = resp.getJSONObject(i);
                     Booking b = new Booking();
                     b.setBookingId(obj.optString("id"));
+                    b.setBookingId(obj.optString("bookingId", obj.optString("BookingId", "")));
                     b.setStationId(obj.optString("stationId", obj.optString("StationId", "")));
                     b.setOwnerNic(nic);
                     b.setStartTimeUtc(obj.optString("startTimeUtc"));
                     b.setEndTimeUtc(obj.optString("endTimeUtc"));
-                    b.setStatus(String.valueOf(obj.optInt("status")));
+                    b.setStatus(obj.optInt("status"));
                     bookingList.add(b);
                     bookingDAO.insertOrUpdateBooking(b); // cache locally
                 }
@@ -416,22 +425,67 @@ private void modifyBooking(String bookingId, String stationId, String start, Str
         });
     }
 
-    private void showQrDialog(String bookingId) {
+ private void showQrDialog(Booking booking) {
+    try {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_booking_qr, null);
+        builder.setView(dialogView);
+
+        ImageView ivQr = dialogView.findViewById(R.id.ivQrCode);
+        TextView tvBookingId = dialogView.findViewById(R.id.tvBookingId);
+        TextView tvStationName = dialogView.findViewById(R.id.tvStationName);
+        TextView tvTimeRange = dialogView.findViewById(R.id.tvTimeRange);
+        TextView tvStatus = dialogView.findViewById(R.id.tvStatus);
+        Button btnClose = dialogView.findViewById(R.id.btnCloseQr);
+
+        // Generate QR code
+        Bitmap qrBitmap = new com.journeyapps.barcodescanner.BarcodeEncoder()
+                .encodeBitmap(booking.getBookingId(),
+                        com.google.zxing.BarcodeFormat.QR_CODE, 400, 400);
+        ivQr.setImageBitmap(qrBitmap);
+
+        // Fill details
+        tvBookingId.setText("Booking ID: " + booking.getBookingId());
+        tvStationName.setText("Station: " + booking.getStationId());
+        tvTimeRange.setText(
+                "Start: " + formatUtcToLocal(booking.getStartTimeUtc()) +
+                        "\nEnd: " + formatUtcToLocal(booking.getEndTimeUtc())
+        );
+
+        tvStatus.setText("Status: " + booking.getStatusText());
+
+        AlertDialog dialog = builder.create();
+
+        btnClose.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
+
+    } catch (Exception e) {
+        Toast.makeText(this, "Failed to generate QR", Toast.LENGTH_SHORT).show();
+        e.printStackTrace();
+    }
+}
+
+
+    private String formatUtcToLocal(String utcDateStr) {
         try {
-            BarcodeEncoder encoder = new BarcodeEncoder();
-            Bitmap bitmap = encoder.encodeBitmap(bookingId, com.google.zxing.BarcodeFormat.QR_CODE, 400, 400);
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setTitle("Booking QR Code")
-                    .setPositiveButton("Close", null)
-                    .setView(new androidx.appcompat.widget.AppCompatImageView(this) {
-                        {
-                            setImageBitmap(bitmap);
-                            setPadding(32, 32, 32, 32);
-                        }
-                    })
-                    .show();
+            // 1. Parse the UTC date string
+            SimpleDateFormat sdfUtc = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+            sdfUtc.setTimeZone(TimeZone.getTimeZone("UTC"));
+            Date date = sdfUtc.parse(utcDateStr);
+
+            // 2. Format it to local, user-friendly string
+            SimpleDateFormat sdfLocal = new SimpleDateFormat("MMM dd, yyyy hh:mm a", Locale.US);
+            sdfLocal.setTimeZone(TimeZone.getDefault()); // converts to local timezone
+            return sdfLocal.format(date);
+
         } catch (Exception e) {
-            Toast.makeText(this, "Failed to generate QR", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+            return utcDateStr; // fallback
         }
     }
+
+
+
+
 }

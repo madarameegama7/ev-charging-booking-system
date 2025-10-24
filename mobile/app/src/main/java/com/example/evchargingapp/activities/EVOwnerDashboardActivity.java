@@ -70,16 +70,6 @@ public class EVOwnerDashboardActivity extends AppCompatActivity implements OnMap
         Date now = new Date();
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
 
-        for (Booking b : bookings) {
-            try {
-                Date start = sdf.parse(b.getStartTimeUtc());
-                if (b.getStatus().equalsIgnoreCase("Pending")) pending++;
-                else if (b.getStatus().equalsIgnoreCase("Approved") && start.after(now)) approved++;
-            } catch (Exception ignored) {}
-        }
-
-        tvPendingCount.setText("Pending Reservations: " + pending);
-        tvApprovedCount.setText("Approved Future Reservations: " + approved);
         bookingDAO.close();
     }
 
