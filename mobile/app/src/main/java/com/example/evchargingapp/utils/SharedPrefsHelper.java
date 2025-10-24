@@ -52,4 +52,17 @@ public class SharedPrefsHelper {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         prefs.edit().clear().apply();
     }
+
+    // Save Station ID
+    public static void saveStationId(Context context, String stationId) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putString(Constants.PREFS_KEY_STATION_ID, stationId).apply();
+    }
+
+    // Get Station ID
+    public static String getStationId(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getString(Constants.PREFS_KEY_STATION_ID, null);
+    }
+
 }
