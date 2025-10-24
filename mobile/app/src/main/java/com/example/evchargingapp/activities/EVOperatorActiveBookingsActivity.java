@@ -81,16 +81,16 @@ public class EVOperatorActiveBookingsActivity extends AppCompatActivity {
                 for (int i = 0; i < arr.length(); i++) {
                     JSONObject obj = arr.getJSONObject(i);
                     String status = obj.optString("status", "");
-                    if (status.equalsIgnoreCase("Pending") || status.equalsIgnoreCase("Approved")) {
-                        bookingList.add(new Booking(
-                                obj.optString("id", ""),
-                                obj.optString("stationId", ""),
-                                obj.optString("ownerNic", ""),
-                                obj.optString("start", ""),
-                                obj.optString("end", ""),
-                                status
-                        ));
-                    }
+//                    if (status.equalsIgnoreCase("Pending") || status.equalsIgnoreCase("Approved")) {
+//                        bookingList.add(new Booking(
+//                                obj.optString("id", ""),
+//                                obj.optString("stationId", ""),
+//                                obj.optString("ownerNic", ""),
+//                                obj.optString("start", ""),
+//                                obj.optString("end", ""),
+//                                status
+//                        ));
+//                    }
                 }
 
                 runOnUiThread(() -> {

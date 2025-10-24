@@ -56,7 +56,7 @@ public class EVOwnerDashboardActivity extends AppCompatActivity implements OnMap
 
         btnProfile.setOnClickListener(v -> startActivity(new Intent(this, EVOwnerProfileActivity.class)));
         btnMyReservations.setOnClickListener(v -> startActivity(new Intent(this, EVOwnerReservationActivity.class)));
-        btnViewStations.setOnClickListener(v -> startActivity(new Intent(this, EVOwnerReservationActivity.class)));
+        btnViewStations.setOnClickListener(v -> startActivity(new Intent(this, ViewStationsActivity.class)));
 
         loadBookingStats();
         setupMap();
