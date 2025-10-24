@@ -14,6 +14,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.evchargingapp.R;
+import com.example.evchargingapp.api.StationApi;
 import com.example.evchargingapp.database.BookingDAO;
 import com.example.evchargingapp.models.Booking;
 import com.example.evchargingapp.api.BookingApi;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Locale;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public class EVOwnerDashboardActivity extends AppCompatActivity implements OnMapReadyCallback {
@@ -129,6 +131,57 @@ public class EVOwnerDashboardActivity extends AppCompatActivity implements OnMap
         }).start();
     }
 
+    private void loadStationsFromApi() {
+        new Thread(() -> {
+            try {
+                String token = SharedPrefsHelper.getToken(this);
+                JSONArray stationsArray = StationApi.getAllStations(token);
+
+                runOnUiThread(() -> {
+                    for (int i = 0; i < stationsArray.length(); i++) {
+                        try {
+                            JSONObject obj = stationsArray.getJSONObject(i);
+                            JSONObject loc = obj.getJSONObject("location");
+
+                            double lat = loc.optDouble("lat", 0.0);   // from backend
+                            double lng = loc.optDouble("lng", 0.0);
+
+                            String name = obj.optString("name", "Unknown Station");
+
+                            addStationMarker(name, new GeoLocation(lat, lng));
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    // Optional: focus camera on first station
+                    if (stationsArray.length() > 0) {
+                        JSONObject first = null;
+                        try {
+                            first = stationsArray.getJSONObject(0);
+                        } catch (JSONException e) {
+                            throw new RuntimeException(e);
+                        }
+                        JSONObject loc = null;
+                        try {
+                            loc = first.getJSONObject("location");
+                        } catch (JSONException e) {
+                            throw new RuntimeException(e);
+                        }
+                        double lat = loc.optDouble("lat", 0.0);
+                        double lng = loc.optDouble("lng", 0.0);
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(lat, lng), 12f));
+                    }
+
+                });
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
     private void setupMap() {
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapFragment);
         if (mapFragment != null) mapFragment.getMapAsync(this);
@@ -138,12 +191,10 @@ public class EVOwnerDashboardActivity extends AppCompatActivity implements OnMap
     public void onMapReady(GoogleMap map) {
         this.googleMap = map;
 
-        // Example: add station markers
-        addStationMarker("Colombo Central Station", new GeoLocation(6.9271, 79.8612));
-        // TODO: Add more stations from your database dynamically
-
-        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(6.9271, 79.8612), 12f));
+        // Load stations dynamically
+        loadStationsFromApi();
     }
+
 
     private void addStationMarker(String name, GeoLocation location) {
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
