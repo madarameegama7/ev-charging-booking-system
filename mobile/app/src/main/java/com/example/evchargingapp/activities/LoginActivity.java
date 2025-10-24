@@ -67,9 +67,14 @@ public class LoginActivity extends AppCompatActivity {
 
                 String token = resp.optString("token", null);
                 String role = resp.optString("role", null);
+                boolean isActive = resp.optBoolean("isActive", true);
+
+                if (!isActive) {
+                    throw new Exception("AccountDeactivated");
+                }
 
                 if (token == null || token.isEmpty()) {
-                    throw new Exception("Invalid login credentials");
+                    throw new Exception("InvalidCredentials");
                 }
 
                 // Save user data
@@ -97,8 +102,17 @@ public class LoginActivity extends AppCompatActivity {
                 ex.printStackTrace();
                 runOnUiThread(() -> {
                     toggleLoading(false);
-                    Toast.makeText(LoginActivity.this,
-                            "Login failed: " + ex.getMessage(), Toast.LENGTH_LONG).show();
+
+                    String message;
+                    if (ex.getMessage() != null && ex.getMessage().contains("AccountDeactivated")) {
+                        message = "Your account has been deactivated. Please contact support.";
+                    } else if (ex.getMessage() != null && ex.getMessage().contains("InvalidCredentials")) {
+                        message = "Incorrect NIC or password. Please try again.";
+                    } else {
+                        message = "Unable to log in. Please check your details or try again later.";
+                    }
+
+                    Toast.makeText(LoginActivity.this, message, Toast.LENGTH_LONG).show();
                     etPassword.setText("");
                 });
             }
