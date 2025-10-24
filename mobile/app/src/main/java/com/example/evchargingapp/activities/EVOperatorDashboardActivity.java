@@ -3,7 +3,6 @@ package com.example.evchargingapp.activities;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.ImageView;
@@ -11,10 +10,6 @@ import android.widget.ImageView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.evchargingapp.R;
-import com.example.evchargingapp.activities.EVOperatorActiveBookingsActivity;
-import com.example.evchargingapp.activities.EVOperatorCompletedBookingsActivity;
-import com.example.evchargingapp.activities.QrScannerActivity;
-import com.example.evchargingapp.utils.Constants;
 import com.example.evchargingapp.utils.SharedPrefsHelper;
 
 public class EVOperatorDashboardActivity extends AppCompatActivity {
@@ -51,7 +46,7 @@ public class EVOperatorDashboardActivity extends AppCompatActivity {
 
         // Button listeners
         btnScanQr.setOnClickListener(v -> {
-            Intent intent = new Intent(this, QrScannerActivity.class);
+            Intent intent = new Intent(this, EVOperatorScanActivity.class);
             startActivity(intent);
         });
 

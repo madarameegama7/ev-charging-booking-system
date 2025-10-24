@@ -28,7 +28,7 @@
             android:name=".activities.EVOperatorActiveBookingsActivity"
             android:exported="false" />
         <activity
-            android:name=".activities.QrScannerActivity"
+            android:name=".activities.EVOperatorScanActivity"
             android:exported="false" />
         <activity
             android:name=".activities.QRScannerActivity"

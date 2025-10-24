@@ -10,7 +10,8 @@ namespace Backend.Models
 		Pending,
 		Approved,
 		Cancelled,
-		Completed
+		Completed,
+		Active
 	}
 
 	public class Booking
@@ -20,7 +21,7 @@ namespace Backend.Models
 		public string? Id { get; set; }
 
 		[BsonElement("bookingId")]
-		public string BookingId { get; set; }=GenerateBookingId();
+		public string BookingId { get; set; } = GenerateBookingId();
 
 		[BsonElement("stationId")]
 		public string StationId { get; set; }
