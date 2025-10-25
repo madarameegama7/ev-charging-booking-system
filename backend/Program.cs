@@ -1,5 +1,6 @@
 // File: Program.cs
 // Description: ASP.NET Core app bootstrap, DI, Swagger, CORS, JWT auth, and MongoDB setup.
+// Adjusted for IIS hosting under /EVChargingAPI
 
 using Backend.Settings;
 using Backend.Data;
@@ -10,7 +11,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// -------------------- Add services to the container -------------------- //
+// -------------------- Add services -------------------- //
 builder.Services.AddControllers();
 
 // Swagger/OpenAPI
@@ -26,7 +27,7 @@ builder.Services.AddCors(options =>
     });
 });
 
-// -------------------- MongoDB DI (Option 1) -------------------- //
+// -------------------- MongoDB DI -------------------- //
 var mongoSettings = builder.Configuration.GetSection("MongoDBSettings").Get<MongoDBSettings>();
 
 if (mongoSettings == null)
@@ -35,12 +36,11 @@ if (mongoSettings == null)
 if (string.IsNullOrWhiteSpace(mongoSettings.ConnectionString))
     throw new Exception("MongoDB connection string is missing in appsettings.json");
 
-// Register MongoClient as singleton
+// Register MongoClient
 builder.Services.AddSingleton<IMongoClient>(sp =>
     new MongoClient(mongoSettings.ConnectionString)
 );
 
-// Register MongoContext as scoped (repositories will use it)
 builder.Services.AddScoped<MongoContext>(sp =>
 {
     var client = sp.GetRequiredService<IMongoClient>();
@@ -57,7 +57,6 @@ builder.Services.AddScoped<Backend.Services.IUserService, Backend.Services.UserS
 builder.Services.AddScoped<Backend.Services.IStationService, Backend.Services.StationService>();
 builder.Services.AddScoped<Backend.Services.IBookingService, Backend.Services.BookingService>();
 
-// Bind JwtSettings section and inject into TokenService
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("Jwt"));
 builder.Services.AddSingleton<Backend.Services.ITokenService, Backend.Services.TokenService>();
 
@@ -94,14 +93,26 @@ builder.Services
 // -------------------- Build app -------------------- //
 var app = builder.Build();
 
-// -------------------- HTTP request pipeline -------------------- //
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// -------------------- Path base for IIS -------------------- //
+app.UsePathBase("/EVChargingAPI");
 
+// -------------------- HTTP request pipeline -------------------- //
 app.UseCors("AllowAll");
+
+// Swagger configuration
+//if (app.Environment.IsDevelopment())
+//{
+    app.UseSwagger(c =>
+    {
+        c.RouteTemplate = "swagger/{documentName}/swagger.json";
+    });
+
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/EVChargingAPI/swagger/v1/swagger.json", "EVChargingAPI V1");
+        c.RoutePrefix = "swagger"; // Accessible at /EVChargingAPI/swagger
+    });
+//}
 
 // AuthN/Z
 app.UseAuthentication();
