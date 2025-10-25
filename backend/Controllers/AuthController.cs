@@ -82,7 +82,7 @@ namespace Backend.Controllers
                     token,
                     role = created.Role,
                     nic = created.NIC,
-                    firstName = request.FirstName, 
+                    firstName = request.FirstName,
                     lastName = request.LastName,
                     message = "Account created successfully"
                 });
@@ -98,8 +98,12 @@ namespace Backend.Controllers
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             var existing = await _userService.GetByNicAsync(request.NIC);
-            if (existing is null || !existing.IsActive)
-                return Unauthorized("Invalid NIC or inactive account");
+            if (existing is null)
+                return Unauthorized(new { error = "InvalidCredentials", message = "Invalid NIC or password." });
+
+            if (!existing.IsActive)
+                return Unauthorized(new { error = "AccountDeactivated", message = "Account is inactive." });
+
 
 
 

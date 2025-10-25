@@ -10,7 +10,7 @@ package com.example.evchargingapp.utils;
 public class Constants {
     // Base URL of backend service
 //    public static final String BASE_URL = "http://10.0.2.2:5000/api/";
-    public static final String BASE_URL = "http://192.168.1.5:5001/api/";
+    public static final String BASE_URL = "http://10.142.50.49:5000/api/";
 
     // API endpoints
     public static final String LOGIN_ENDPOINT = BASE_URL + "auth/login";
@@ -23,5 +23,10 @@ public class Constants {
     public static final String PREFS_KEY_JWT = "jwt_token";
     public static final String PREFS_KEY_NIC = "owner_nic";
     public static final String PREFS_KEY_ROLE = "user_role";
+
+    public static final String PREFS_KEY_STATION_ID = "station_id";
+
+    public static final String PREFS_KEY_NAME = "user_name";
+
 
 }

@@ -77,4 +77,13 @@ public class BookingApi {
             return false;
         }
     }
+
+    public static JSONObject getBookingById(String bookingId, String token) throws Exception {
+        Log.d("BookingApi", "Fetching booking by ID=" + bookingId);
+        Future<String> futureResponse = ApiClient.get("booking/" + bookingId, token);
+        String response = futureResponse.get();
+        Log.d("BookingApi", "Response: " + response);
+        return new JSONObject(response);
+    }
+
 }
