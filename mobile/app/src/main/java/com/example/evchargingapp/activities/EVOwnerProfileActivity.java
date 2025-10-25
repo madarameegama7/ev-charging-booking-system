@@ -2,9 +2,12 @@ package com.example.evchargingapp.activities;
 
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.graphics.Rect;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -56,6 +59,27 @@ public class EVOwnerProfileActivity extends AppCompatActivity {
 
         btnUpdate.setOnClickListener(v -> updateProfile());
         btnDeactivate.setOnClickListener(v -> confirmDeactivation());
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+            View v = getCurrentFocus();
+            if (v instanceof EditText) {
+                Rect outRect = new Rect();
+                v.getGlobalVisibleRect(outRect);
+                if (!outRect.contains((int) ev.getRawX(), (int) ev.getRawY())) {
+                    v.clearFocus();
+
+                    // Hide the keyboard
+                    InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                    if (imm != null) {
+                        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                    }
+                }
+            }
+        }
+        return super.dispatchTouchEvent(ev);
     }
 
     // -------------------- Hybrid Load --------------------
@@ -199,20 +223,27 @@ public class EVOwnerProfileActivity extends AppCompatActivity {
                 btnUpdate.setText("Update Profile");
 
                 if (success) {
-                    Toast.makeText(EVOwnerProfileActivity.this, "✓ Profile updated successfully!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(EVOwnerProfileActivity.this, "Profile updated successfully!", Toast.LENGTH_SHORT).show();
                     tvProfileName.setText(name);
                     tvInitials.setText(getInitials(name));
                     etPassword.setText("");
 
-                    // Only update password if a new one is entered
+                    // Update password if a new one is entered
                     if (!password.isEmpty()) {
                         updatePassword(nic, token, password);
                     }
 
+                    // Navigate back to EVOwnerDashboardActivity after success
+                    Intent intent = new Intent(EVOwnerProfileActivity.this, EVOwnerDashboardActivity.class);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                    finish(); // close profile activity
+
                 } else {
-                    Toast.makeText(EVOwnerProfileActivity.this, "✗ Update failed! Please try again.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(EVOwnerProfileActivity.this, "Update failed! Please try again.", Toast.LENGTH_SHORT).show();
                 }
             }
+
         }.execute();
     }
 

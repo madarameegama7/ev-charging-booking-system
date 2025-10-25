@@ -1,8 +1,11 @@
 package com.example.evchargingapp.activities;
 
 import android.content.Intent;
+import android.graphics.Rect;
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.*;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -43,6 +46,27 @@ public class LoginActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        if (ev.getAction() == MotionEvent.ACTION_DOWN) {
+            View v = getCurrentFocus();
+            if (v instanceof EditText) {
+                Rect outRect = new Rect();
+                v.getGlobalVisibleRect(outRect);
+                if (!outRect.contains((int) ev.getRawX(), (int) ev.getRawY())) {
+                    v.clearFocus();
+
+                    // Hide the keyboard
+                    InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                    if (imm != null) {
+                        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+                    }
+                }
+            }
+        }
+        return super.dispatchTouchEvent(ev);
+    }
+
     private void attemptLogin() {
         final String nic = etNic.getText().toString().trim();
         final String password = etPassword.getText().toString().trim();
@@ -67,15 +91,25 @@ public class LoginActivity extends AppCompatActivity {
 
                 String token = resp.optString("token", null);
                 String role = resp.optString("role", null);
+                boolean isActive = resp.optBoolean("isActive", true);
+
+                String firstName = resp.optString("firstName", "");
+                String lastName = resp.optString("lastName", "");
+                String fullName = (firstName + " " + lastName).trim();
+
+                if (!isActive) {
+                    throw new Exception("AccountDeactivated");
+                }
 
                 if (token == null || token.isEmpty()) {
-                    throw new Exception("Invalid login credentials");
+                    throw new Exception("InvalidCredentials");
                 }
 
                 // Save user data
                 SharedPrefsHelper.saveToken(getApplicationContext(), token);
                 SharedPrefsHelper.saveNic(getApplicationContext(), nic);
                 SharedPrefsHelper.saveRole(getApplicationContext(), role);
+                SharedPrefsHelper.saveName(getApplicationContext(), fullName);
 
                 // Navigate to dashboard based on role
                 runOnUiThread(() -> {
@@ -97,8 +131,17 @@ public class LoginActivity extends AppCompatActivity {
                 ex.printStackTrace();
                 runOnUiThread(() -> {
                     toggleLoading(false);
-                    Toast.makeText(LoginActivity.this,
-                            "Login failed: " + ex.getMessage(), Toast.LENGTH_LONG).show();
+
+                    String message;
+                    if (ex.getMessage() != null && ex.getMessage().contains("AccountDeactivated")) {
+                        message = "Your account has been deactivated. Please contact support.";
+                    } else if (ex.getMessage() != null && ex.getMessage().contains("InvalidCredentials")) {
+                        message = "Incorrect NIC or password. Please try again.";
+                    } else {
+                        message = "Unable to log in. Please check your details or try again later.";
+                    }
+
+                    Toast.makeText(LoginActivity.this, message, Toast.LENGTH_LONG).show();
                     etPassword.setText("");
                 });
             }

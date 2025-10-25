@@ -1,69 +1,160 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@android:color/white">
+    android:padding="20dp"
+    android:background="@drawable/bg_card">
 
+    <!-- Dialog Title -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Station"
+        android:text="New Booking"
+        android:textSize="20sp"
         android:textStyle="bold"
-        android:layout_marginTop="8dp"/>
+        android:textColor="@color/gray_900"
+        android:layout_marginBottom="20dp"/>
 
-    <Spinner
-        android:id="@+id/spinnerStation"
+    <!-- Station Selection -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Select Station"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:textColor="@color/gray_700"
+        android:layout_marginBottom="6dp"/>
+
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"/>
+        android:orientation="vertical"
+        android:background="@drawable/edit_text_selector"
+        android:padding="2dp"
+        android:layout_marginBottom="16dp">
 
+        <Spinner
+            android:id="@+id/spinnerStation"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:spinnerMode="dropdown"/>
+    </LinearLayout>
+
+    <!-- Start Time -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Start Time"
         android:textStyle="bold"
-        android:layout_marginTop="12dp"/>
+        android:textSize="14sp"
+        android:textColor="@color/gray_700"
+        android:layout_marginBottom="6dp"/>
 
-    <EditText
-        android:id="@+id/etStartTime"
+    <LinearLayout
+        android:id="@+id/layoutStartTime"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Select Start Time"
-        android:focusable="false"
+        android:orientation="horizontal"
+        android:background="@drawable/edit_text_selector"
+        android:padding="12dp"
+        android:gravity="center_vertical"
         android:clickable="true"
-        android:padding="8dp"
-        android:background="@android:drawable/edit_text"
-        android:layout_marginTop="4dp"/>
+        android:focusable="true"
+        android:layout_marginBottom="16dp">
 
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@android:drawable/ic_menu_recent_history"
+            app:tint="@color/primary_green"
+            android:layout_marginEnd="10dp"/>
+
+        <EditText
+            android:id="@+id/etStartTime"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Select Start Time"
+            android:textSize="14sp"
+            android:textColor="@color/gray_900"
+            android:textColorHint="@color/gray_500"
+            android:focusable="false"
+            android:clickable="false"
+            android:background="@android:color/transparent"
+            android:inputType="none"
+            android:cursorVisible="false"/>
+    </LinearLayout>
+
+    <!-- End Time -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="End Time"
         android:textStyle="bold"
-        android:layout_marginTop="12dp"/>
+        android:textSize="14sp"
+        android:textColor="@color/gray_700"
+        android:layout_marginBottom="6dp"/>
 
-    <EditText
-        android:id="@+id/etEndTime"
+    <LinearLayout
+        android:id="@+id/layoutEndTime"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Select End Time"
-        android:focusable="false"
-        android:clickable="true"
-        android:padding="8dp"
-        android:background="@android:drawable/edit_text"
-        android:layout_marginTop="4dp"/>
-
-    <Button
-        android:id="@+id/btnSubmitBooking"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Submit"
-        android:textAllCaps="false"
-        android:backgroundTint="@android:color/holo_purple"
-        android:textColor="@android:color/white"
-        android:layout_marginTop="16dp"
+        android:orientation="horizontal"
+        android:background="@drawable/edit_text_selector"
         android:padding="12dp"
-        android:elevation="4dp"/>
+        android:gravity="center_vertical"
+        android:clickable="true"
+        android:focusable="true"
+        android:layout_marginBottom="20dp">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@android:drawable/ic_menu_recent_history"
+            app:tint="@color/primary_green"
+            android:layout_marginEnd="10dp"/>
+
+        <EditText
+            android:id="@+id/etEndTime"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="Select End Time"
+            android:textSize="14sp"
+            android:textColor="@color/gray_900"
+            android:textColorHint="@color/gray_500"
+            android:focusable="false"
+            android:clickable="false"
+            android:background="@android:color/transparent"
+            android:inputType="none"
+            android:cursorVisible="false"/>
+    </LinearLayout>
+
+    <!-- Action Buttons -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:layout_marginTop="8dp">
+
+        <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/btnSubmitBooking"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:text="Submit Booking"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:background="@drawable/button_primary_selector"
+            android:paddingStart="24dp"
+            android:paddingEnd="24dp"
+            android:elevation="2dp"
+            android:stateListAnimator="@null"/>
+    </LinearLayout>
+
 </LinearLayout>

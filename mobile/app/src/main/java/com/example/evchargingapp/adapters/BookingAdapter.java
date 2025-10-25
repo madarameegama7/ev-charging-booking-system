@@ -94,6 +94,14 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.ViewHold
             Log.d("BookingAdapter", "QR clicked for bookingId: " + b.getBookingId());
             listener.onShowQR(b);
         });
+
+        // For completed bookings, disable all buttons
+        if ("Completed".equals(b.getStatusText())) {
+            holder.btnModify.setEnabled(false);
+            holder.btnCancel.setEnabled(false);
+            holder.btnQR.setEnabled(false);
+        }
+
     }
 
     private void fetchStationName(String stationId, TextView textView, int position) {

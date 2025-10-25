@@ -1,203 +1,93 @@
 package com.example.evchargingapp.activities;
 
+import android.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.ImageView;
-import android.view.LayoutInflater;
+
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatButton;
 
 import com.example.evchargingapp.R;
 import com.example.evchargingapp.utils.SharedPrefsHelper;
 
 public class EVOperatorDashboardActivity extends AppCompatActivity {
 
-    private TextView tvWelcome, tvPendingCount, tvActiveCount, tvCompletedCount;
-    private TextView tvSessionCount, tvNoSessions;
-    private Button btnScanQR, btnLogout;
-    private LinearLayout cardViewReservations, cardStationStatus;
-    private LinearLayout containerSessions, containerTransactions;
-    private TextView tvViewAll;
+    private TextView tvWelcome, tvStationName, tvPendingCount, tvApprovedCount, tvCompletedCount;
+    private LinearLayout btnScanQr, btnActiveBookings, btnCompleted, btnPendingBookings;
+    private AppCompatButton btnLogout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_evoperator_dashboard);
 
-        initializeViews();
-        loadOperatorData();
-        setupClickListeners();
-        loadActiveSessions();
-        loadTransactionHistory();
-    }
-
-    private void initializeViews() {
         tvWelcome = findViewById(R.id.tvWelcome);
+        tvStationName = findViewById(R.id.tvStationName);
         tvPendingCount = findViewById(R.id.tvPendingCount);
-        tvActiveCount = findViewById(R.id.tvActiveCount);
+        tvApprovedCount = findViewById(R.id.tvApprovedCount);
         tvCompletedCount = findViewById(R.id.tvCompletedCount);
-        tvSessionCount = findViewById(R.id.tvSessionCount);
-        tvNoSessions = findViewById(R.id.tvNoSessions);
 
-        btnScanQR = findViewById(R.id.btnScanQR);
+        btnScanQr = findViewById(R.id.btnScanQr);
+        btnActiveBookings = findViewById(R.id.btnActiveBookings);
+        btnCompleted = findViewById(R.id.btnCompleted);
+        btnPendingBookings = findViewById(R.id.btnPendingBookings);
         btnLogout = findViewById(R.id.btnLogout);
 
-        cardViewReservations = findViewById(R.id.cardViewReservations);
-        cardStationStatus = findViewById(R.id.cardStationStatus);
+        // Show Operator info
+        String name = SharedPrefsHelper.getName(this);
+        String role = SharedPrefsHelper.getRole(this);
 
-        containerSessions = findViewById(R.id.containerSessions);
-        containerTransactions = findViewById(R.id.containerTransactions);
-        tvViewAll = findViewById(R.id.tvViewAll);
-    }
+        tvWelcome.setText("Welcome, " + name);
+        tvStationName.setText("Role: " + role);
 
-    private void loadOperatorData() {
-        String nic = SharedPrefsHelper.getNic(this);
-//        tvWelcome.setText("Operator " + nic.substring(0, Math.min(5, nic.length())));
-        tvWelcome.setText("Janudi");
+        // TODO: Call API to get booking stats
+        // e.g., fetchCountsFromApi();
 
-        // TODO: Load these values from the server or database
-        tvPendingCount.setText("12");
-        tvActiveCount.setText("5");
-        tvCompletedCount.setText("8");
-    }
-
-    private void setupClickListeners() {
-        btnScanQR.setOnClickListener(v -> {
-            // Navigate to QR Scanner Activity
-            Intent intent = new Intent(EVOperatorDashboardActivity.this, QRScannerActivity.class);
+        // Button listeners
+        btnScanQr.setOnClickListener(v -> {
+            Intent intent = new Intent(this, EVOperatorScanActivity.class);
             startActivity(intent);
         });
 
-        cardViewReservations.setOnClickListener(v -> {
-            // Navigate to Reservations Activity
-            Intent intent = new Intent(EVOperatorDashboardActivity.this, EVOperatorReservationActivity.class);
+        btnActiveBookings.setOnClickListener(v -> {
+            Intent intent = new Intent(this, EVOperatorActiveBookingsActivity.class);
             startActivity(intent);
         });
 
-        cardStationStatus.setOnClickListener(v -> {
-            // Navigate to Station Status Activity
-            Intent intent = new Intent(EVOperatorDashboardActivity.this, StationStatusActivity.class);
+        btnCompleted.setOnClickListener(v -> {
+            Intent intent = new Intent(this, EVOperatorCompletedBookingsActivity.class);
             startActivity(intent);
         });
 
-        tvViewAll.setOnClickListener(v -> {
-            // Navigate to full transaction history
-            Intent intent = new Intent(EVOperatorDashboardActivity.this, TransactionHistoryActivity.class);
+        btnPendingBookings.setOnClickListener(v -> {
+            Intent intent = new Intent(this, EVOperatorPendingBookingsActivity.class);
             startActivity(intent);
         });
 
-        btnLogout.setOnClickListener(v -> performLogout());
+        // ✅ Logout button listener
+        btnLogout.setOnClickListener(v -> showLogoutConfirmation());
     }
 
-    private void loadActiveSessions() {
-        // TODO: Fetch active sessions from database or server
-        // This is a sample implementation
+    private void showLogoutConfirmation() {
+        new AlertDialog.Builder(this)
+                .setTitle("Logout")
+                .setMessage("Are you sure you want to log out?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    // Clear saved user session
+                    SharedPrefsHelper.clear(this);
 
-        // Clear previous items
-        containerSessions.removeAllViews();
-
-        // Sample data - replace with actual data
-        String[][] sessions = {
-                {"EV-001", "Tesla Model 3", "45%", "12:30 PM"},
-                {"EV-002", "BMW i4", "60%", "1:00 PM"},
-                {"EV-003", "Nissan Leaf", "30%", "1:15 PM"}
-        };
-
-        if (sessions.length > 0) {
-            tvNoSessions.setVisibility(android.view.View.GONE);
-            tvSessionCount.setText(sessions.length + " sessions");
-
-            for (String[] session : sessions) {
-                addSessionItem(session[0], session[1], session[2], session[3]);
-            }
-        } else {
-            tvNoSessions.setVisibility(android.view.View.VISIBLE);
-        }
+                    // Redirect to login screen
+                    Intent intent = new Intent(this, LoginActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .show();
     }
 
-    private void addSessionItem(String reservationId, String vehicleModel, String chargeLevel, String startTime) {
-        LinearLayout sessionView = (LinearLayout) LayoutInflater.from(this)
-                .inflate(R.layout.item_session, containerSessions, false);
-
-        TextView tvReservationId = sessionView.findViewById(R.id.tvReservationId);
-        TextView tvVehicleModel = sessionView.findViewById(R.id.tvVehicleModel);
-        TextView tvChargeLevel = sessionView.findViewById(R.id.tvChargeLevel);
-        TextView tvStartTime = sessionView.findViewById(R.id.tvStartTime);
-        Button btnCompleteSession = sessionView.findViewById(R.id.btnCompleteSession);
-
-        tvReservationId.setText(reservationId);
-        tvVehicleModel.setText(vehicleModel);
-        tvChargeLevel.setText(chargeLevel);
-        tvStartTime.setText(startTime);
-
-        btnCompleteSession.setOnClickListener(v -> {
-            // Complete the session
-            completeChargingSession(reservationId);
-        });
-
-        containerSessions.addView(sessionView);
-    }
-
-    private void loadTransactionHistory() {
-        // TODO: Fetch transaction history from database or server
-
-        containerTransactions.removeAllViews();
-
-        // Sample data - replace with actual data
-        String[][] transactions = {
-                {"TXN-2024-001", "Rs.450.00", "Completed", "10:30 AM"},
-                {"TXN-2024-002", "Rs.320.00", "Completed", "11:45 AM"}
-        };
-
-        for (String[] transaction : transactions) {
-            addTransactionItem(transaction[0], transaction[1], transaction[2], transaction[3]);
-        }
-    }
-
-    private void addTransactionItem(String transactionId, String amount, String status, String time) {
-        LinearLayout transactionView = (LinearLayout) LayoutInflater.from(this)
-                .inflate(R.layout.item_transaction, containerTransactions, false);
-
-        TextView tvTxnId = transactionView.findViewById(R.id.tvTxnId);
-        TextView tvAmount = transactionView.findViewById(R.id.tvAmount);
-        TextView tvStatus = transactionView.findViewById(R.id.tvStatus);
-        TextView tvTime = transactionView.findViewById(R.id.tvTime);
-
-        tvTxnId.setText(transactionId);
-        tvAmount.setText(amount);
-        tvStatus.setText(status);
-        tvTime.setText(time);
-
-        containerTransactions.addView(transactionView);
-    }
-
-    private void completeChargingSession(String reservationId) {
-        // TODO: Implement logic to finalize charging session
-        // Update database, send to server, generate receipt, etc.
-
-        // Show confirmation dialog or toast
-        android.widget.Toast.makeText(this, "Session " + reservationId + " completed", android.widget.Toast.LENGTH_SHORT).show();
-
-        // Reload active sessions
-        loadActiveSessions();
-    }
-
-    private void performLogout() {
-        SharedPrefsHelper.clear(this);
-        Intent intent = new Intent(EVOperatorDashboardActivity.this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(intent);
-        finish();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        // Refresh data when returning to this activity
-        loadOperatorData();
-        loadActiveSessions();
-        loadTransactionHistory();
-    }
+    // TODO: create function fetchCountsFromApi() to load counts from backend
 }
