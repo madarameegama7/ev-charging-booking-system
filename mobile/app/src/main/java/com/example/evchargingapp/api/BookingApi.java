@@ -27,7 +27,19 @@ public class BookingApi {
         Future<String> futureResponse = ApiClient.post("booking", json.toString(), token);
         String response = futureResponse.get(); // unwrap Future
         Log.d("BookingApi", "Response from backend: " + response);
-        return new JSONObject(response);
+        
+        // Handle empty response
+        if (response == null || response.trim().isEmpty()) {
+            Log.e("BookingApi", "Empty response from server");
+            throw new Exception("Server returned empty response");
+        }
+        
+        try {
+            return new JSONObject(response);
+        } catch (Exception e) {
+            Log.e("BookingApi", "Failed to parse JSON response: " + response);
+            throw new Exception("Invalid response from server: " + response);
+        }
     }
 
     /**
@@ -38,9 +50,19 @@ public class BookingApi {
         Future<String> futureResponse = ApiClient.get("booking/owner/" + nic, token);
         String response = futureResponse.get(); // unwrap Future
         Log.d("BookingApi", "Response: " + response);
-        return new JSONArray(response);
+        
+        if (response == null || response.trim().isEmpty()) {
+            Log.e("BookingApi", "Empty response from server for getBookingsByOwner");
+            throw new Exception("Server returned empty response");
+        }
+        
+        try {
+            return new JSONArray(response);
+        } catch (Exception e) {
+            Log.e("BookingApi", "Failed to parse JSON array response: " + response);
+            throw new Exception("Invalid response from server: " + response);
+        }
     }
-
     /**
      * Fetch all bookings for a given station ID (for operators).
      */
@@ -56,7 +78,7 @@ public class BookingApi {
      * Update an existing booking with new details.
      */
     public static JSONObject updateBooking(String bookingId, JSONObject update, String token) throws Exception {
-      String response = ApiClient.put("booking/" + bookingId, update.toString(), token);
+        String response = ApiClient.put("booking/" + bookingId, update.toString(), token);
         Log.d("BookingApi", "Updated booking response: " + response);
         return new JSONObject(response);
     }
