@@ -5,18 +5,49 @@ import {
   updateBooking,
   cancelBooking,
 } from "../../api/bookings";
+import { listStations } from "../../api/stations";
 
 export default function BookingsSummary() {
   const [bookings, setBookings] = useState([]);
+  const [stations, setStations] = useState([]);
+  const [stationMap, setStationMap] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    (async () => {
-      try {
-        const data = await listAllBookings();
-        setBookings(data);
-      } catch {}
-    })();
-  }, []);
+  (async () => {
+    try {
+      setLoading(true);
+      const [bookingsData, stationsData] = await Promise.all([
+        listAllBookings(),
+        listStations()
+      ]);
+      
+      console.log("Bookings:", bookingsData);
+      console.log("Stations:", stationsData);
+      
+      setBookings(bookingsData);
+      setStations(stationsData);
+      
+      const map = {};
+      stationsData.forEach(station => {
+        map[station.stationId] = station.name || `Station ${station.stationId}`;
+        console.log(`Mapping: ${station.id} -> ${station.name}`);
+      });
+      setStationMap(map);
+      
+      // Test a booking's stationId
+      if (bookingsData.length > 0) {
+        console.log("First booking stationId:", bookingsData[0].stationId);
+        console.log("Mapped name:", map[bookingsData[0].stationId]);
+      }
+      
+    } catch (error) {
+      console.error("Failed to load data:", error);
+    } finally {
+      setLoading(false);
+    }
+  })();
+}, []);
 
   const columns = [
     "Owner NIC",
@@ -24,14 +55,11 @@ export default function BookingsSummary() {
     "Start Time",
     "End Time",
     "Status",
-    "Actions",
   ];
 
   const getStatusColor = (status) => {
-    // Normalize numeric enum values or string values to a lowercase status string
     let s = status;
     if (typeof s === "number") {
-      // BookingStatus: Pending=0, Approved=1, Cancelled=2, Completed=3
       s = ["pending", "approved", "cancelled", "completed"][s] ?? String(s);
     }
     s = (s ?? "").toString().toLowerCase();
@@ -56,16 +84,26 @@ export default function BookingsSummary() {
       return ["Pending", "Approved", "Cancelled", "Completed"][status] ?? String(status);
     }
     if (!status) return "";
-    // capitalize
     const s = status.toString();
     return s.charAt(0).toUpperCase() + s.slice(1);
   };
 
+  // Get station name from the mapping
+  const getStationName = (stationId) => {
+    return stationMap[stationId] || `Station ${stationId}`;
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg">Loading bookings...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full space-y-6">
-      {/* Bookings Management Section */}
       <div className="bg-white rounded-xl shadow-md">
-        {/* Header */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
@@ -74,7 +112,6 @@ export default function BookingsSummary() {
           </div>
         </div>
 
-        {/* Table */}
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead className="bg-gray-50 border-b-2 border-gray-200">
@@ -100,7 +137,7 @@ export default function BookingsSummary() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm text-gray-900">
-                        {b.stationId}
+                        {getStationName(b.stationId)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -129,51 +166,7 @@ export default function BookingsSummary() {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex gap-2">
-                        <button
-                          className="px-4 py-2 bg-[#347928] text-white hover:bg-green-800 text-sm rounded-lg transition-all shadow-sm hover:shadow-md cursor-pointer"
-                          onClick={async () => {
-                            try {
-                              const start = new Date(b.startTimeUtc);
-                              const end = new Date(b.endTimeUtc);
-                              // Example: move by +1 hour (demo update)
-                              start.setHours(start.getHours() + 1);
-                              end.setHours(end.getHours() + 1);
-                              await updateBooking(b.id, {
-                                ...b,
-                                startTimeUtc: start.toISOString(),
-                                endTimeUtc: end.toISOString(),
-                              });
-                              const data = await listAllBookings();
-                              setBookings(data);
-                            } catch (e) {
-                              alert(e.message);
-                            }
-                          }}
-                        >
-                          Shift +1h
-                        </button>
-                        <button
-                          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-all shadow-sm hover:shadow-md cursor-pointer"
-                          onClick={async () => {
-                            if (
-                              !confirm(
-                                `Are you sure you want to cancel booking for ${b.ownerNIC}?`
-                              )
-                            )
-                              return;
-                            try {
-                              await cancelBooking(b.id);
-                              const data = await listAllBookings();
-                              setBookings(data);
-                            } catch (e) {
-                              alert(e.message);
-                            }
-                          }}
-                        >
-                          Cancel
-                        </button>
-                      </div>
+                      
                     </td>
                   </tr>
                 ))
@@ -194,7 +187,6 @@ export default function BookingsSummary() {
           </table>
         </div>
 
-        {/* Footer */}
         <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
           <p className="text-sm text-gray-600">
             Showing <span className="font-medium">{bookings.length}</span>{" "}

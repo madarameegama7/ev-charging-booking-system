@@ -23,9 +23,8 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
-
-
 import com.example.evchargingapp.R;
+import com.example.evchargingapp.api.ApiClient;
 import com.example.evchargingapp.adapters.BookingAdapter;
 import com.example.evchargingapp.api.BookingApi;
 import com.example.evchargingapp.api.StationApi;
@@ -42,6 +41,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future; 
 
 public class EVOwnerReservationActivity extends AppCompatActivity {
 
@@ -109,7 +109,7 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
             fetchBookings();
 
         } catch (Exception e) {
-            e.printStackTrace(); // This will show the crash reason in Logcat
+            e.printStackTrace();
             Toast.makeText(this, "Error in onCreate: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
@@ -119,23 +119,26 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
         Date now = new Date();
         for (Booking b : bookingList) {
             try {
-                Date start = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).parse(b.getStartTimeUtc());
+                // Parse as local time
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+                sdf.setTimeZone(TimeZone.getDefault());
+                Date start = sdf.parse(b.getStartTime());
+                
                 if (upcoming && start.after(now)) {
                     displayedList.add(b);
                 } else if (!upcoming && start.before(now)) {
                     displayedList.add(b);
                 }
             } catch (Exception ignored) {
+                ignored.printStackTrace();
             }
         }
         adapter.notifyDataSetChanged();
         if (displayedList.isEmpty()) {
             Toast.makeText(this, "No bookings found", Toast.LENGTH_SHORT).show();
         }
-
     }
 
-    // Booking form, create / modify
     private void showBookingForm(Booking booking) {
         editingBooking = booking;
         View formView = getLayoutInflater().inflate(R.layout.dialog_add_booking, null);
@@ -144,7 +147,7 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
         EditText etEndTime = formView.findViewById(R.id.etEndTime);
         Button btnSubmitBooking = formView.findViewById(R.id.btnSubmitBooking);
 
-        final Map<String, String> nameToId = new HashMap<>(); // keep only this
+        final Map<String, String> nameToId = new HashMap<>();
 
         executor.execute(() -> {
             try {
@@ -154,11 +157,11 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
 
                 for (int i = 0; i < stations.length(); i++) {
                     JSONObject s = stations.getJSONObject(i);
-                    String id = s.getString("stationId"); // server ID
+                    String id = s.getString("stationId");
                     String name = s.getString("name");
 
                     stationNames.add(name);
-                    nameToId.put(name, id); // fill the outer map
+                    nameToId.put(name, id);
                 }
 
                 runOnUiThread(() -> {
@@ -166,6 +169,31 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
                             android.R.layout.simple_spinner_item, stationNames);
                     adapterSpinner.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                     spinnerStation.setAdapter(adapterSpinner);
+                    
+                    // Pre-fill form if modifying existing booking
+                    if (booking != null) {
+                        try {
+                            SimpleDateFormat sdfDisplay = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+                            sdfDisplay.setTimeZone(TimeZone.getDefault());
+                            
+                            // Parse the stored time and display in local format
+                            Date startDate = parseFlexibleDate(booking.getStartTime());
+                            Date endDate = parseFlexibleDate(booking.getEndTime());
+                            
+                            etStartTime.setText(sdfDisplay.format(startDate));
+                            etEndTime.setText(sdfDisplay.format(endDate));
+                            
+                            // Set station spinner
+                            for (int i = 0; i < adapterSpinner.getCount(); i++) {
+                                if (nameToId.get(adapterSpinner.getItem(i)).equals(booking.getStationId())) {
+                                    spinnerStation.setSelection(i);
+                                    break;
+                                }
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
                 });
 
             } catch (Exception e) {
@@ -178,6 +206,7 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
 
         AlertDialog dialog = new AlertDialog.Builder(this).setView(formView).create();
         dialog.show();
+        
         btnSubmitBooking.setOnClickListener(v -> {
             String stationName = (String) spinnerStation.getSelectedItem();
             if (stationName == null || !nameToId.containsKey(stationName)) {
@@ -195,28 +224,27 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
             }
 
             try {
-                // Parse local dates
+                // Parse local dates directly
                 SimpleDateFormat sdfLocal = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+                sdfLocal.setTimeZone(TimeZone.getDefault());
                 Date startDate = sdfLocal.parse(start);
                 Date endDate = sdfLocal.parse(end);
 
-                // Convert to UTC
-                SimpleDateFormat sdfUtc = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
-                sdfUtc.setTimeZone(TimeZone.getTimeZone("UTC"));
-                String startUtc = sdfUtc.format(startDate);
-                String endUtc = sdfUtc.format(endDate);
-
                 // Log for debugging
                 Log.d("BookingDebug", "Selected Start (local): " + start);
-                Log.d("BookingDebug", "Selected End   (local): " + end);
-                Log.d("BookingDebug", "Start UTC sent : " + startUtc);
-                Log.d("BookingDebug", "End UTC sent   : " + endUtc);
-                Log.d("BookingDebug", "Current UTC time: " + sdfUtc.format(new Date()));
+                Log.d("BookingDebug", "Selected End (local): " + end);
+                Log.d("BookingDebug", "Current local time: " + sdfLocal.format(new Date()));
 
-                // Validate 1-hour rule before sending
-                Date nowUtc = new Date();
-                Calendar oneHourLater = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-                oneHourLater.setTime(nowUtc);
+                // Validate start is before end
+                if (startDate.after(endDate)) {
+                    Toast.makeText(this, "Start time must be before end time", Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                // Validate 1-hour rule using local time
+                Date nowLocal = new Date();
+                Calendar oneHourLater = Calendar.getInstance();
+                oneHourLater.setTime(nowLocal);
                 oneHourLater.add(Calendar.HOUR_OF_DAY, 1);
 
                 if (startDate.before(oneHourLater.getTime())) {
@@ -224,19 +252,18 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
                     return;
                 }
 
-                // Optional: validate within 7 days
+                // Optional: validate within 7 days using local time
                 Calendar limit = Calendar.getInstance();
                 limit.add(Calendar.DAY_OF_YEAR, 7);
                 if (startDate.after(limit.getTime()) || endDate.after(limit.getTime())) {
-                    Toast.makeText(this, "Both start and end times must be within 7 days from now", Toast.LENGTH_LONG)
-                            .show();
+                    Toast.makeText(this, "Both start and end times must be within 7 days from now", Toast.LENGTH_LONG).show();
                     return;
                 }
 
-                // Show confirmation dialog
+                // Show confirmation dialog with local times
                 String summary = "📍 Station: " + stationName
-                        + "\n\n🕒 Start: " + startUtc
-                        + "\n⏰ End: " + endUtc
+                        + "\n\n🕒 Start: " + start
+                        + "\n⏰ End: " + end
                         + "\n\nPlease confirm your reservation details.";
 
                 new AlertDialog.Builder(this)
@@ -245,9 +272,9 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
                         .setPositiveButton("Confirm", (d, w) -> {
                             dialog.dismiss();
                             if (editingBooking == null) {
-                                createBooking(stationId, startUtc, endUtc);
+                                createBooking(stationId, start, end);
                             } else {
-                                modifyBooking(editingBooking.getBookingId(), stationId, startUtc, endUtc);
+                                modifyBooking(editingBooking.getBookingId(), stationId, start, end);
                             }
                         })
                         .setNegativeButton("Cancel", null)
@@ -255,12 +282,39 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
 
             } catch (Exception ex) {
                 Toast.makeText(this, "Invalid date format", Toast.LENGTH_SHORT).show();
+                ex.printStackTrace();
             }
         });
-
     }
 
-    // Pick date and time, store in local format
+    private void testBackendConnection() {
+    executor.execute(() -> {
+        try {
+            String token = SharedPrefsHelper.getToken(this);
+            
+            JSONObject testData = new JSONObject();
+            testData.put("message", "test");
+            testData.put("timestamp", System.currentTimeMillis());
+            
+            Log.d("BackendTest", "Sending test request...");
+            
+            Future<String> futureResponse = ApiClient.post("booking/test", testData.toString(), token);
+            String response = futureResponse.get();
+            
+            Log.d("BackendTest", "Backend test response: " + response);
+            runOnUiThread(() -> {
+                Toast.makeText(this, "Backend test successful", Toast.LENGTH_LONG).show();
+            });
+            
+        } catch (Exception e) {
+            Log.e("BackendTest", "Backend test failed", e);
+            runOnUiThread(() -> {
+                Toast.makeText(this, "Backend test failed: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            });
+        }
+    });
+}
+
     private void pickDateTime(EditText target) {
         Calendar calendar = Calendar.getInstance();
         new DatePickerDialog(this, (view, year, month, day) -> {
@@ -273,7 +327,7 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
 
                 // Format in local time
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
-                sdf.setTimeZone(TimeZone.getDefault()); // ensures local timezone
+                sdf.setTimeZone(TimeZone.getDefault());
                 target.setText(sdf.format(calendar.getTime()));
 
                 Log.d("BookingDebug", "Selected (local): " + target.getText().toString());
@@ -286,99 +340,110 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
         if (progressBar != null) {
             progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
         }
-        // Optionally disable user interaction while loading
         getWindow().getDecorView().setEnabled(!show);
     }
 
-   private void fetchBookings() {
-    String nic = SharedPrefsHelper.getNic(this);
-    String token = SharedPrefsHelper.getToken(this);
-    Log.d("EVOwnerReservation", "NIC=" + nic + ", Token=" + token);
+    private void fetchBookings() {
+        String nic = SharedPrefsHelper.getNic(this);
+        String token = SharedPrefsHelper.getToken(this);
+        Log.d("EVOwnerReservation", "NIC=" + nic + ", Token=" + token);
 
-    toggleLoading(true);
-    executor.execute(() -> {
-        BookingDAO bookingDAO = new BookingDAO(this);
-        bookingDAO.open();
-        
-        try {
-            // First try to fetch from backend and update local DB
-            JSONArray resp = BookingApi.getBookingsByOwner(nic, token);
+        toggleLoading(true);
+        executor.execute(() -> {
+            BookingDAO bookingDAO = new BookingDAO(this);
+            bookingDAO.open();
             
-            // Clear both lists before adding new data
-            bookingList.clear();
-            
-            // Fetch all stations to map IDs to names
-            JSONArray stations = StationApi.getAllStations(token);
-            Map<String, String> stationIdToName = new HashMap<>();
-            for (int i = 0; i < stations.length(); i++) {
-                JSONObject s = stations.getJSONObject(i);
-                String id = s.getString("stationId");
-                String name = s.getString("name");
-                stationIdToName.put(id, name);
-            }
-
-            // Update local database with fresh data from API
-            bookingDAO.deleteAllBookings(); // clear old cache
-            
-            for (int i = 0; i < resp.length(); i++) {
-                JSONObject obj = resp.getJSONObject(i);
-                Booking b = new Booking();
-                b.setBookingId(obj.optString("id"));
-                b.setBookingId(obj.optString("bookingId", obj.optString("BookingId", "")));
-                b.setStationId(obj.optString("stationId", obj.optString("StationId", "")));
-                b.setOwnerNic(nic);
-                b.setStartTimeUtc(obj.optString("startTimeUtc"));
-                b.setEndTimeUtc(obj.optString("endTimeUtc"));
-                b.setStatus(obj.optInt("status"));
+            try {
+                // First try to fetch from backend and update local DB
+                JSONArray resp = BookingApi.getBookingsByOwner(nic, token);
                 
-                // Add to bookingList
-                bookingList.add(b);
-                // Cache locally
-                bookingDAO.insertOrUpdateBooking(b);
-            }
+                // Clear both lists before adding new data
+                bookingList.clear();
+                
+                // Fetch all stations to map IDs to names
+                JSONArray stations = StationApi.getAllStations(token);
+                Map<String, String> stationIdToName = new HashMap<>();
+                for (int i = 0; i < stations.length(); i++) {
+                    JSONObject s = stations.getJSONObject(i);
+                    String id = s.getString("stationId");
+                    String name = s.getString("name");
+                    stationIdToName.put(id, name);
+                }
 
-            // Update adapter with station names if available
-            if (adapter != null) {
+                // Update local database with fresh data from API
+                bookingDAO.deleteAllBookings();
+                
+                for (int i = 0; i < resp.length(); i++) {
+                    JSONObject obj = resp.getJSONObject(i);
+                    Booking b = new Booking();
+                    b.setBookingId(obj.optString("id"));
+                    b.setBookingId(obj.optString("bookingId", obj.optString("BookingId", "")));
+                    b.setStationId(obj.optString("stationId", obj.optString("StationId", "")));
+                    b.setOwnerNic(nic);
+                    
+                    // Handle both old UTC and new local time formats
+                    String startTime = obj.optString("startTime", obj.optString("startTimeUtc", ""));
+                    String endTime = obj.optString("endTime", obj.optString("endTimeUtc", ""));
+                    b.setStartTime(startTime);
+                    b.setEndTime(endTime);
+                    
+                    b.setStatus(obj.optInt("status"));
+                    
+                    // Add to bookingList
+                    bookingList.add(b);
+                    // Cache locally
+                    bookingDAO.insertOrUpdateBooking(b);
+                }
+
+                // Update adapter with station names if available
+                if (adapter != null) {
+                    runOnUiThread(() -> {
+                        adapter.updateStationNameCache(stationIdToName);
+                    });
+                }
+
                 runOnUiThread(() -> {
-                    adapter.updateStationNameCache(stationIdToName);
+                    filterBookings(tabLayout.getSelectedTabPosition() == 0);
+                    toggleLoading(false);
                 });
+
+            } catch (Exception e) {
+                // If API fails, fall back to local database
+                Log.e("EVOwnerReservation", "API fetch failed, using local data", e);
+                bookingList.clear();
+                bookingList.addAll(bookingDAO.getBookingsByOwner(nic));
+                
+                runOnUiThread(() -> {
+                    filterBookings(tabLayout.getSelectedTabPosition() == 0);
+                    toggleLoading(false);
+                    Toast.makeText(this, "Using cached data", Toast.LENGTH_SHORT).show();
+                });
+            } finally {
+                bookingDAO.close();
             }
+        });
+    }
 
-            runOnUiThread(() -> {
-                filterBookings(tabLayout.getSelectedTabPosition() == 0);
-                toggleLoading(false);
-            });
-
-        } catch (Exception e) {
-            // If API fails, fall back to local database
-            Log.e("EVOwnerReservation", "API fetch failed, using local data", e);
-            bookingList.clear();
-            bookingList.addAll(bookingDAO.getBookingsByOwner(nic));
-            
-            runOnUiThread(() -> {
-                filterBookings(tabLayout.getSelectedTabPosition() == 0);
-                toggleLoading(false);
-                Toast.makeText(this, "Using cached data", Toast.LENGTH_SHORT).show();
-            });
-        } finally {
-            bookingDAO.close();
-        }
-    });
-}
-
-  private void createBooking(String stationId, String start, String end) {
+   private void createBooking(String stationId, String startLocal, String endLocal) {
     toggleLoading(true);
     executor.execute(() -> {
         try {
             String ownerNic = SharedPrefsHelper.getNic(this);
             String token = SharedPrefsHelper.getToken(this);
 
-            // Build JSON object
+            // Build JSON object with local times
             JSONObject json = new JSONObject();
             json.put("stationId", stationId);
             json.put("ownerNic", ownerNic);
-            json.put("startTimeUtc", start);
-            json.put("endTimeUtc", end);
+            json.put("startTime", startLocal);
+            json.put("endTime", endLocal);
+
+            // Log the request for debugging
+            Log.d("BookingDebug", "Sending booking request: " + json.toString());
+            Log.d("BookingDebug", "Token: " + (token != null ? token.substring(0, Math.min(10, token.length())) + "..." : "null"));
+            Log.d("BookingDebug", "StationId: " + stationId);
+            Log.d("BookingDebug", "StartTime: " + startLocal);
+            Log.d("BookingDebug", "EndTime: " + endLocal);
 
             // Call API
             JSONObject response = BookingApi.createBooking(json, token);
@@ -398,37 +463,35 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
     });
 }
 
- 
-private void modifyBooking(String bookingId, String stationId, String start, String end) {
-    toggleLoading(true);
-    executor.execute(() -> {
-        try {
-            String token = SharedPrefsHelper.getToken(this);
+    private void modifyBooking(String bookingId, String stationId, String startLocal, String endLocal) {
+        toggleLoading(true);
+        executor.execute(() -> {
+            try {
+                String token = SharedPrefsHelper.getToken(this);
 
-            // Build JSON object
-            JSONObject update = new JSONObject();
-            update.put("stationId", stationId);
-            update.put("startTimeUtc", start);
-            update.put("endTimeUtc", end);
+                // Build JSON object with local times
+                JSONObject update = new JSONObject();
+                update.put("stationId", stationId);
+                update.put("startTime", startLocal);
+                update.put("endTime", endLocal);
 
-            // Call API
-            JSONObject response = BookingApi.updateBooking(bookingId, update, token);
+                // Call API
+                JSONObject response = BookingApi.updateBooking(bookingId, update, token);
 
-            runOnUiThread(() -> {
-                toggleLoading(false);
-                fetchBookings();
-                Toast.makeText(this, "Booking modified", Toast.LENGTH_SHORT).show();
-            });
-        } catch (Exception e) {
-            Log.e("ModifyBookingError", "Error modifying booking", e);
-            runOnUiThread(() -> {
-                toggleLoading(false);
-                Toast.makeText(this, "Failed to modify booking", Toast.LENGTH_SHORT).show();
-            });
-        }
-    });
-}
-
+                runOnUiThread(() -> {
+                    toggleLoading(false);
+                    fetchBookings();
+                    Toast.makeText(this, "Booking modified", Toast.LENGTH_SHORT).show();
+                });
+            } catch (Exception e) {
+                Log.e("ModifyBookingError", "Error modifying booking", e);
+                runOnUiThread(() -> {
+                    toggleLoading(false);
+                    Toast.makeText(this, "Failed to modify booking", Toast.LENGTH_SHORT).show();
+                });
+            }
+        });
+    }
 
     private void showCancelConfirmation(Booking booking) {
         new AlertDialog.Builder(this)
@@ -455,89 +518,119 @@ private void modifyBooking(String bookingId, String stationId, String start, Str
         });
     }
 
- private void showQrDialog(Booking booking) {
-    try {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_booking_qr, null);
-        builder.setView(dialogView);
-
-        ImageView ivQr = dialogView.findViewById(R.id.ivQrCode);
-        TextView tvBookingId = dialogView.findViewById(R.id.tvBookingId);
-        TextView tvStationName = dialogView.findViewById(R.id.tvStationName);
-        TextView tvTimeRange = dialogView.findViewById(R.id.tvTimeRange);
-        TextView tvStatus = dialogView.findViewById(R.id.tvStatus);
-        Button btnClose = dialogView.findViewById(R.id.btnCloseQr);
-
-        // Generate QR code
-        Bitmap qrBitmap = new com.journeyapps.barcodescanner.BarcodeEncoder()
-                .encodeBitmap(booking.getBookingId(),
-                        com.google.zxing.BarcodeFormat.QR_CODE, 400, 400);
-        ivQr.setImageBitmap(qrBitmap);
-
-        // Fill details
-        tvBookingId.setText("Booking ID: " + booking.getBookingId());
-        tvStationName.setText("Station: Loading...");
-        tvTimeRange.setText(
-                "Start: " + formatUtcToLocal(booking.getStartTimeUtc()) +
-                        "\nEnd: " + formatUtcToLocal(booking.getEndTimeUtc())
-        );
-
-        tvStatus.setText("Status: " + booking.getStatusText());
-
-        AlertDialog dialog = builder.create();
-
-        btnClose.setOnClickListener(v -> dialog.dismiss());
-
-        dialog.show();
-
-         // Fetch station name asynchronously
-        fetchStationName(booking.getStationId(), tvStationName);
-
-    } catch (Exception e) {
-        Toast.makeText(this, "Failed to generate QR", Toast.LENGTH_SHORT).show();
-        e.printStackTrace();
-    }
-}
-
-private void fetchStationName(String stationId, TextView tvStationName) {
-    executor.execute(() -> {
+    private void showQrDialog(Booking booking) {
         try {
-            String token = SharedPrefsHelper.getToken(this);
-            JSONObject station = StationApi.getStationById(stationId,token);
-            String stationName = station.getString("name");
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            View dialogView = getLayoutInflater().inflate(R.layout.dialog_booking_qr, null);
+            builder.setView(dialogView);
+
+            ImageView ivQr = dialogView.findViewById(R.id.ivQrCode);
+            TextView tvBookingId = dialogView.findViewById(R.id.tvBookingId);
+            TextView tvStationName = dialogView.findViewById(R.id.tvStationName);
+            TextView tvTimeRange = dialogView.findViewById(R.id.tvTimeRange);
+            TextView tvStatus = dialogView.findViewById(R.id.tvStatus);
+            Button btnClose = dialogView.findViewById(R.id.btnCloseQr);
+
+            // Generate QR code
+            Bitmap qrBitmap = new BarcodeEncoder()
+                    .encodeBitmap(booking.getBookingId(),
+                            com.google.zxing.BarcodeFormat.QR_CODE, 400, 400);
+            ivQr.setImageBitmap(qrBitmap);
+
+            // Fill details with local time formatting
+            tvBookingId.setText("Booking ID: " + booking.getBookingId());
+            tvStationName.setText("Station: Loading...");
+            tvTimeRange.setText(
+                    "Start: " + formatLocalTime(booking.getStartTime()) +
+                    "\nEnd: " + formatLocalTime(booking.getEndTime())
+            );
+
+            tvStatus.setText("Status: " + booking.getStatusText());
+
+            AlertDialog dialog = builder.create();
+            btnClose.setOnClickListener(v -> dialog.dismiss());
+            dialog.show();
+
+            // Fetch station name asynchronously
+            fetchStationName(booking.getStationId(), tvStationName);
+
+        } catch (Exception e) {
+            Toast.makeText(this, "Failed to generate QR", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
+        }
+    }
+
+    private void fetchStationName(String stationId, TextView tvStationName) {
+        executor.execute(() -> {
+            try {
+                String token = SharedPrefsHelper.getToken(this);
+                JSONObject station = StationApi.getStationById(stationId, token);
+                String stationName = station.getString("name");
+                
+                runOnUiThread(() -> {
+                    tvStationName.setText("Station: " + stationName);
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+                runOnUiThread(() -> {
+                    tvStationName.setText("Station: " + stationId);
+                });
+            }
+        });
+    }
+
+    // Helper method to format local time for display
+    private String formatLocalForDisplay(String localDateStr) {
+        try {
+            SimpleDateFormat sdfInput = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+            sdfInput.setTimeZone(TimeZone.getDefault());
+            Date date = sdfInput.parse(localDateStr);
+
+            SimpleDateFormat sdfDisplay = new SimpleDateFormat("MMM dd, yyyy hh:mm a", Locale.US);
+            sdfDisplay.setTimeZone(TimeZone.getDefault());
+            return sdfDisplay.format(date);
+        } catch (Exception e) {
+            return localDateStr;
+        }
+    }
+
+    // Flexible date parser that handles both local and UTC formats
+    private Date parseFlexibleDate(String dateStr) {
+        try {
+            // Try local format first
+            SimpleDateFormat sdfLocal = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
+            sdfLocal.setTimeZone(TimeZone.getDefault());
+            return sdfLocal.parse(dateStr);
+        } catch (Exception e1) {
+            try {
+                // Try UTC format as fallback
+                SimpleDateFormat sdfUtc = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+                sdfUtc.setTimeZone(TimeZone.getTimeZone("UTC"));
+                return sdfUtc.parse(dateStr);
+            } catch (Exception e2) {
+                e2.printStackTrace();
+                return new Date(); // Return current date as last resort
+            }
+        }
+    }
+
+    // Format time for display (handles both local and UTC)
+    private String formatLocalTime(String dateStr) {
+        try {
+            Date date = parseFlexibleDate(dateStr);
             
-            runOnUiThread(() -> {
-                tvStationName.setText("Station: " + stationName);
-            });
+            SimpleDateFormat sdfDisplay = new SimpleDateFormat("MMM dd, yyyy hh:mm a", Locale.US);
+            sdfDisplay.setTimeZone(TimeZone.getDefault());
+            return sdfDisplay.format(date);
         } catch (Exception e) {
             e.printStackTrace();
-            runOnUiThread(() -> {
-                tvStationName.setText("Station: " + stationId); // Fallback to ID if name fetch fails
-            });
-        }
-    });
-}
-
-
-    private String formatUtcToLocal(String utcDateStr) {
-        try {
-            // 1. Parse the UTC date string
-            SimpleDateFormat sdfUtc = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
-            sdfUtc.setTimeZone(TimeZone.getTimeZone("UTC"));
-            Date date = sdfUtc.parse(utcDateStr);
-
-            // 2. Format it to local, user-friendly string
-            SimpleDateFormat sdfLocal = new SimpleDateFormat("MMM dd, yyyy hh:mm a", Locale.US);
-            sdfLocal.setTimeZone(TimeZone.getDefault()); // converts to local timezone
-            return sdfLocal.format(date);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return utcDateStr; // fallback
+            return dateStr;
         }
     }
 
-
-
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        executor.shutdown();
+    }
 }
