@@ -11,12 +11,6 @@ export async function listStationsByOperator(operatorNic) {
 	const stations = await listStations();
 	return stations.filter(station => station.operatorNic === operatorNic);
 }
-export async function getStationById(stationId) {
-	const res = await authFetch(`/api/Station/${stationId}`);
-	if (res.status === 404) throw new Error('Not found');
-	if (!res.ok) throw new Error('Failed to load station');
-	return res.json();
-}
 
 export async function createStation(payload) {
 	const res = await authFetch('/api/Station', { method: 'POST', body: JSON.stringify(payload) });

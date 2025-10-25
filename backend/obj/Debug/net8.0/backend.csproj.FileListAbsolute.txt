@@ -115,8 +115,3 @@ C:\Users\janud\OneDrive\Desktop\SLIIT\4thYear\1stSemester\EAD\projects\ev-chargi
 C:\Users\janud\OneDrive\Desktop\SLIIT\4thYear\1stSemester\EAD\projects\ev-charging-booking-system\backend\bin\Debug\net8.0\Data\sample_bookings.json
 C:\Users\janud\OneDrive\Desktop\SLIIT\4thYear\1stSemester\EAD\projects\ev-charging-booking-system\backend\bin\Debug\net8.0\Data\sample_bookings_corrected.json
 >>>>>>> d288d78aaa3ba69a0b54def0f501ae6837ea0ef9
-E:\ev-charging-booking-system\backend\obj\Debug\net8.0\rpswa.dswa.cache.json
-E:\ev-charging-booking-system\backend\obj\Debug\net8.0\rjimswa.dswa.cache.json
-E:\ev-charging-booking-system\backend\obj\Debug\net8.0\rjsmrazor.dswa.cache.json
-E:\ev-charging-booking-system\backend\obj\Debug\net8.0\rjsmcshtml.dswa.cache.json
-E:\ev-charging-booking-system\backend\obj\Debug\net8.0\swae.build.ex.cache
