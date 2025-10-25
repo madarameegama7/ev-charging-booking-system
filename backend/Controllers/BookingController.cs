@@ -5,7 +5,6 @@ using Backend.Models;
 using Backend.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
-using System.Text.Json;
 
 namespace Backend.Controllers
 {
@@ -19,98 +18,25 @@ namespace Backend.Controllers
 		//add booking
 		[HttpPost]
 		[Authorize(Roles = "Owner,Operator,Backoffice")]
-
-
-		[HttpPost]
-		public async Task<IActionResult> Create([FromBody] CreateBookingDto dto)
+		public async Task<IActionResult> Create([FromBody] Booking booking)
 		{
 			try
 			{
-				Console.WriteLine($"[BookingController] Received booking request at: {DateTime.Now}");
-
-				if (dto == null)
-				{
-					Console.WriteLine($"[BookingController] ERROR: DTO is null");
-					return BadRequest("Request body is null");
-				}
-
-				Console.WriteLine($"[BookingController] StationId: {dto.StationId}");
-				Console.WriteLine($"[BookingController] OwnerNIC: {dto.OwnerNIC}");
-				Console.WriteLine($"[BookingController] StartTime: {dto.StartTime}");
-				Console.WriteLine($"[BookingController] EndTime: {dto.EndTime}");
-
-				// Validate required fields
-				if (string.IsNullOrEmpty(dto.StationId))
-				{
-					Console.WriteLine($"[BookingController] ERROR: StationId is null or empty");
-					return BadRequest("StationId is required");
-				}
-
-				if (string.IsNullOrEmpty(dto.OwnerNIC))
-				{
-					Console.WriteLine($"[BookingController] ERROR: OwnerNIC is null or empty");
-					return BadRequest("OwnerNIC is required");
-				}
-
-				if (string.IsNullOrEmpty(dto.StartTime))
-				{
-					Console.WriteLine($"[BookingController] ERROR: StartTime is null or empty");
-					return BadRequest("StartTime is required");
-				}
-
-				if (string.IsNullOrEmpty(dto.EndTime))
-				{
-					Console.WriteLine($"[BookingController] ERROR: EndTime is null or empty");
-					return BadRequest("EndTime is required");
-				}
-
-				// Convert DTO to Booking entity
-				var booking = new Booking
-				{
-					StationId = dto.StationId,
-					OwnerNIC = dto.OwnerNIC
-				};
-
-				// Set times through properties (this will do the UTC conversion)
-				try
-				{
-					booking.StartTime = dto.StartTime;
-					booking.EndTime = dto.EndTime;
-				}
-				catch (ArgumentException ex)
-				{
-					Console.WriteLine($"[BookingController] ERROR: Invalid time format - {ex.Message}");
-					return BadRequest($"Invalid time format: {ex.Message}");
-				}
-
-				Console.WriteLine($"[BookingController] Converted times - StartTimeUtc: {booking.StartTimeUtc}, EndTimeUtc: {booking.EndTimeUtc}");
-
 				var result = await _service.CreateAsync(booking);
-
-				Console.WriteLine($"[BookingController] Booking created successfully: {result.BookingId}");
-				return Ok(result);
+				return Ok(result); // returns JSON
+			}
+			catch (ArgumentException ex)
+			{
+				// Return structured JSON error instead of plain text
+				return BadRequest(new { error = ex.Message });
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine($"[BookingController] UNHANDLED EXCEPTION: {ex.Message}");
-				Console.WriteLine($"[BookingController] StackTrace: {ex.StackTrace}");
-
-				// Return proper error response
-				return StatusCode(500, new { error = ex.Message, details = ex.StackTrace });
+				// General server error
+				return StatusCode(500, new { error = "Internal server error" });
 			}
 		}
 
-        [HttpPost("test")]
-public IActionResult Test([FromBody] object testData)
-{
-    Console.WriteLine($"[BookingController] Test endpoint hit at: {DateTime.Now}");
-    Console.WriteLine($"[BookingController] Test data: {JsonSerializer.Serialize(testData)}");
-    return Ok(new { 
-        message = "Backend is working", 
-        received = testData,
-        timestamp = DateTime.Now
-    });
-}
 		//get all bookings
 		[HttpGet]
 		[Authorize(Roles = "Backoffice,Operator")]
