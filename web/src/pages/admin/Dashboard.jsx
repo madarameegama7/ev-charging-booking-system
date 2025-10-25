@@ -50,9 +50,7 @@ export default function AdminDashboard() {
           </h2>
           <div className="flex items-center gap-4">
             <Bell className="text-gray-600 cursor-pointer" size={24} />
-            <button className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-black cursor-pointer">
-              Logout
-            </button>
+           
           </div>
         </header>
 

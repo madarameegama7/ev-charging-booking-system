@@ -290,51 +290,81 @@ public class EVOwnerReservationActivity extends AppCompatActivity {
         getWindow().getDecorView().setEnabled(!show);
     }
 
-    private void fetchBookings() {
-        String nic = SharedPrefsHelper.getNic(this);
-        String token = SharedPrefsHelper.getToken(this);
-        Log.d("EVOwnerReservation", "NIC=" + nic + ", Token=" + token);
+   private void fetchBookings() {
+    String nic = SharedPrefsHelper.getNic(this);
+    String token = SharedPrefsHelper.getToken(this);
+    Log.d("EVOwnerReservation", "NIC=" + nic + ", Token=" + token);
 
-        toggleLoading(true);
-        executor.execute(() -> {
-            BookingDAO bookingDAO = new BookingDAO(this);
-            bookingDAO.open();
-            // First read from local DB
+    toggleLoading(true);
+    executor.execute(() -> {
+        BookingDAO bookingDAO = new BookingDAO(this);
+        bookingDAO.open();
+        
+        try {
+            // First try to fetch from backend and update local DB
+            JSONArray resp = BookingApi.getBookingsByOwner(nic, token);
+            
+            // Clear both lists before adding new data
             bookingList.clear();
-            bookingList.addAll(bookingDAO.getBookingsByOwner(nic));
+            
+            // Fetch all stations to map IDs to names
+            JSONArray stations = StationApi.getAllStations(token);
+            Map<String, String> stationIdToName = new HashMap<>();
+            for (int i = 0; i < stations.length(); i++) {
+                JSONObject s = stations.getJSONObject(i);
+                String id = s.getString("stationId");
+                String name = s.getString("name");
+                stationIdToName.put(id, name);
+            }
+
+            // Update local database with fresh data from API
+            bookingDAO.deleteAllBookings(); // clear old cache
+            
+            for (int i = 0; i < resp.length(); i++) {
+                JSONObject obj = resp.getJSONObject(i);
+                Booking b = new Booking();
+                b.setBookingId(obj.optString("id"));
+                b.setBookingId(obj.optString("bookingId", obj.optString("BookingId", "")));
+                b.setStationId(obj.optString("stationId", obj.optString("StationId", "")));
+                b.setOwnerNic(nic);
+                b.setStartTimeUtc(obj.optString("startTimeUtc"));
+                b.setEndTimeUtc(obj.optString("endTimeUtc"));
+                b.setStatus(obj.optInt("status"));
+                
+                // Add to bookingList
+                bookingList.add(b);
+                // Cache locally
+                bookingDAO.insertOrUpdateBooking(b);
+            }
+
+            // Update adapter with station names if available
+            if (adapter != null) {
+                runOnUiThread(() -> {
+                    adapter.updateStationNameCache(stationIdToName);
+                });
+            }
 
             runOnUiThread(() -> {
                 filterBookings(tabLayout.getSelectedTabPosition() == 0);
                 toggleLoading(false);
             });
 
-            try {
-                // Then try to fetch from backend and update local DB
-                JSONArray resp = BookingApi.getBookingsByOwner(nic, token);
-                bookingDAO.deleteAllBookings(); // clear old cache
-                for (int i = 0; i < resp.length(); i++) {
-                    JSONObject obj = resp.getJSONObject(i);
-                    Booking b = new Booking();
-                    b.setBookingId(obj.optString("id"));
-                    b.setBookingId(obj.optString("bookingId", obj.optString("BookingId", "")));
-                    b.setStationId(obj.optString("stationId", obj.optString("StationId", "")));
-                    b.setOwnerNic(nic);
-                    b.setStartTimeUtc(obj.optString("startTimeUtc"));
-                    b.setEndTimeUtc(obj.optString("endTimeUtc"));
-                    b.setStatus(obj.optInt("status"));
-                    bookingList.add(b);
-                    bookingDAO.insertOrUpdateBooking(b); // cache locally
-                }
-
-                runOnUiThread(() -> filterBookings(tabLayout.getSelectedTabPosition() == 0));
-
-            } catch (Exception e) {
-                runOnUiThread(() -> Toast.makeText(this, "Error fetching bookings", Toast.LENGTH_SHORT).show());
-            } finally {
-                bookingDAO.close();
-            }
-        });
-    }
+        } catch (Exception e) {
+            // If API fails, fall back to local database
+            Log.e("EVOwnerReservation", "API fetch failed, using local data", e);
+            bookingList.clear();
+            bookingList.addAll(bookingDAO.getBookingsByOwner(nic));
+            
+            runOnUiThread(() -> {
+                filterBookings(tabLayout.getSelectedTabPosition() == 0);
+                toggleLoading(false);
+                Toast.makeText(this, "Using cached data", Toast.LENGTH_SHORT).show();
+            });
+        } finally {
+            bookingDAO.close();
+        }
+    });
+}
 
   private void createBooking(String stationId, String start, String end) {
     toggleLoading(true);
@@ -446,7 +476,7 @@ private void modifyBooking(String bookingId, String stationId, String start, Str
 
         // Fill details
         tvBookingId.setText("Booking ID: " + booking.getBookingId());
-        tvStationName.setText("Station: " + booking.getStationId());
+        tvStationName.setText("Station: Loading...");
         tvTimeRange.setText(
                 "Start: " + formatUtcToLocal(booking.getStartTimeUtc()) +
                         "\nEnd: " + formatUtcToLocal(booking.getEndTimeUtc())
@@ -460,10 +490,32 @@ private void modifyBooking(String bookingId, String stationId, String start, Str
 
         dialog.show();
 
+         // Fetch station name asynchronously
+        fetchStationName(booking.getStationId(), tvStationName);
+
     } catch (Exception e) {
         Toast.makeText(this, "Failed to generate QR", Toast.LENGTH_SHORT).show();
         e.printStackTrace();
     }
+}
+
+private void fetchStationName(String stationId, TextView tvStationName) {
+    executor.execute(() -> {
+        try {
+            String token = SharedPrefsHelper.getToken(this);
+            JSONObject station = StationApi.getStationById(stationId,token);
+            String stationName = station.getString("name");
+            
+            runOnUiThread(() -> {
+                tvStationName.setText("Station: " + stationName);
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+            runOnUiThread(() -> {
+                tvStationName.setText("Station: " + stationId); // Fallback to ID if name fetch fails
+            });
+        }
+    });
 }
 
 

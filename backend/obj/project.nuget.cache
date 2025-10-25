@@ -1,6 +1,10 @@
 {
   "version": 2,
+<<<<<<< HEAD
   "dgSpecHash": "eAHEOp4dVyg=",
+=======
+  "dgSpecHash": "nkLlVNJALPE=",
+>>>>>>> ea3d94d91d6e608676b32f9b7cc3fb92b99870a7
   "success": true,
   "projectFilePath": "C:\\Users\\janud\\OneDrive\\Desktop\\SLIIT\\4thYear\\1stSemester\\EAD\\projects\\ev-charging-booking-system\\backend\\backend.csproj",
   "expectedPackageFiles": [

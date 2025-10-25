@@ -27,9 +27,16 @@ public class StationApi {
         }
     }
 
+public static JSONObject getStationById(String id, String token) throws Exception {
+    String response = ApiClient.get("station/" + id, token).get();
+    Object json = new org.json.JSONTokener(response).nextValue();
 
-    public static JSONObject getStationById(String id) throws Exception {
-        String response = ApiClient.get("station/" + id, null).get();
-        return new JSONObject(response);
+    if (json instanceof JSONObject) {
+        JSONObject obj = (JSONObject) json;
+        // If backend wraps the station data in "data"
+        return obj.has("data") ? obj.getJSONObject("data") : obj;
+    } else {
+        return new JSONObject();
     }
+}
 }
