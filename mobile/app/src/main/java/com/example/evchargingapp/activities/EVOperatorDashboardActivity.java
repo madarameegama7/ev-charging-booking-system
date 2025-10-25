@@ -8,6 +8,7 @@ import android.widget.TextView;
 import android.widget.ImageView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatButton;
 
 import com.example.evchargingapp.R;
 import com.example.evchargingapp.utils.SharedPrefsHelper;
@@ -16,7 +17,7 @@ public class EVOperatorDashboardActivity extends AppCompatActivity {
 
     private TextView tvWelcome, tvStationName, tvPendingCount, tvApprovedCount, tvCompletedCount;
     private LinearLayout btnScanQr, btnActiveBookings, btnCompleted, btnPendingBookings;
-    private ImageView btnLogout;
+    private AppCompatButton btnLogout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,9 +37,10 @@ public class EVOperatorDashboardActivity extends AppCompatActivity {
         btnLogout = findViewById(R.id.btnLogout);
 
         // Show Operator info
-        String nic = SharedPrefsHelper.getNic(this);
+        String name = SharedPrefsHelper.getName(this);
         String role = SharedPrefsHelper.getRole(this);
-        tvWelcome.setText("Welcome, " + nic);
+
+        tvWelcome.setText("Welcome, " + name);
         tvStationName.setText("Role: " + role);
 
         // TODO: Call API to get booking stats

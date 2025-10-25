@@ -69,6 +69,10 @@ public class LoginActivity extends AppCompatActivity {
                 String role = resp.optString("role", null);
                 boolean isActive = resp.optBoolean("isActive", true);
 
+                String firstName = resp.optString("firstName", "");
+                String lastName = resp.optString("lastName", "");
+                String fullName = (firstName + " " + lastName).trim();
+
                 if (!isActive) {
                     throw new Exception("AccountDeactivated");
                 }
@@ -81,6 +85,7 @@ public class LoginActivity extends AppCompatActivity {
                 SharedPrefsHelper.saveToken(getApplicationContext(), token);
                 SharedPrefsHelper.saveNic(getApplicationContext(), nic);
                 SharedPrefsHelper.saveRole(getApplicationContext(), role);
+                SharedPrefsHelper.saveName(getApplicationContext(), fullName);
 
                 // Navigate to dashboard based on role
                 runOnUiThread(() -> {

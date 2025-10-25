@@ -25,6 +25,18 @@ public class SharedPrefsHelper {
         return prefs.getString(Constants.PREFS_KEY_JWT, null);
     }
 
+    // ✅ Save User Name
+    public static void saveName(Context context, String name) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putString(Constants.PREFS_KEY_NAME, name).apply();
+    }
+
+    // ✅ Get User Name
+    public static String getName(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        return prefs.getString(Constants.PREFS_KEY_NAME, null);
+    }
+
     // Save Owner NIC
     public static void saveNic(Context context, String nic) {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);

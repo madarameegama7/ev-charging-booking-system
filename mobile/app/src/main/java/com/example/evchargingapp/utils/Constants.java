@@ -26,5 +26,7 @@ public class Constants {
 
     public static final String PREFS_KEY_STATION_ID = "station_id";
 
+    public static final String PREFS_KEY_NAME = "user_name";
+
 
 }

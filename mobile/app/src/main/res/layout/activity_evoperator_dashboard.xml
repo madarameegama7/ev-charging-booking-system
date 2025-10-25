@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:padding="16dp">
 
         <!-- Header Section -->
         <LinearLayout
@@ -19,8 +19,8 @@
             android:orientation="vertical"
             android:background="@drawable/bg_card"
             android:elevation="4dp"
-            android:padding="20dp"
-            android:layout_marginBottom="20dp">
+            android:padding="16dp"
+            android:layout_marginBottom="16dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -30,11 +30,11 @@
 
                 <!-- Profile Icon -->
                 <ImageView
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
                     android:src="@drawable/logo"
                     android:background="@drawable/bg_button_primary"
-                    android:padding="12dp"
+                    android:padding="10dp"
                     android:elevation="2dp"/>
 
                 <LinearLayout
@@ -42,45 +42,40 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical"
-                    android:layout_marginStart="16dp">
+                    android:layout_marginStart="12dp">
 
                     <TextView
                         android:id="@+id/tvWelcome"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Welcome, Operator!"
-                        android:textSize="20sp"
+                        android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="@color/gray_900"/>
+                        android:textColor="@color/gray_900"
+                        android:maxLines="1"
+                        android:ellipsize="end"/>
 
                     <TextView
                         android:id="@+id/tvStationName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Station: Kandy EV Point"
-                        android:textSize="14sp"
+                        android:textSize="13sp"
                         android:textColor="@color/gray_600"
-                        android:layout_marginTop="4dp"/>
+                        android:layout_marginTop="2dp"
+                        android:maxLines="1"
+                        android:ellipsize="end"/>
 
                     <TextView
                         android:id="@+id/tvCurrentDate"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Today, Oct 23, 2025"
-                        android:textSize="12sp"
+                        android:text="Today, Oct 25, 2025"
+                        android:textSize="11sp"
                         android:textColor="@color/gray_600"
                         android:layout_marginTop="2dp"/>
                 </LinearLayout>
 
-                <!-- Logout Button -->
-                <ImageView
-                    android:id="@+id/btnLogout"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:src="@drawable/ic_logout"
-                    android:padding="8dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Logout"/>
             </LinearLayout>
         </LinearLayout>
 
@@ -89,17 +84,17 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Today's Overview"
-            android:textSize="18sp"
+            android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="@color/gray_900"
-            android:layout_marginBottom="12dp"/>
+            android:layout_marginBottom="10dp"/>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:weightSum="3"
-            android:layout_marginBottom="24dp">
+            android:layout_marginBottom="20dp">
 
             <!-- Pending Card -->
             <LinearLayout
@@ -109,16 +104,16 @@
                 android:orientation="vertical"
                 android:background="@drawable/bg_card"
                 android:elevation="4dp"
-                android:padding="16dp"
+                android:padding="12dp"
                 android:gravity="center"
-                android:layout_marginEnd="8dp">
+                android:layout_marginEnd="6dp">
 
                 <TextView
                     android:id="@+id/tvPendingCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="0"
-                    android:textSize="32sp"
+                    android:text="3"
+                    android:textSize="28sp"
                     android:textStyle="bold"
                     android:textColor="#FF9800"/>
 
@@ -126,7 +121,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Pending"
-                    android:textSize="12sp"
+                    android:textSize="11sp"
                     android:textColor="@color/gray_600"
                     android:layout_marginTop="4dp"/>
             </LinearLayout>
@@ -139,17 +134,17 @@
                 android:orientation="vertical"
                 android:background="@drawable/bg_card"
                 android:elevation="4dp"
-                android:padding="16dp"
+                android:padding="12dp"
                 android:gravity="center"
-                android:layout_marginStart="4dp"
-                android:layout_marginEnd="4dp">
+                android:layout_marginStart="3dp"
+                android:layout_marginEnd="3dp">
 
                 <TextView
                     android:id="@+id/tvApprovedCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="0"
-                    android:textSize="32sp"
+                    android:text="2"
+                    android:textSize="28sp"
                     android:textStyle="bold"
                     android:textColor="@color/primary_green"/>
 
@@ -157,7 +152,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Active"
-                    android:textSize="12sp"
+                    android:textSize="11sp"
                     android:textColor="@color/gray_600"
                     android:layout_marginTop="4dp"/>
             </LinearLayout>
@@ -170,16 +165,16 @@
                 android:orientation="vertical"
                 android:background="@drawable/bg_card"
                 android:elevation="4dp"
-                android:padding="16dp"
+                android:padding="12dp"
                 android:gravity="center"
-                android:layout_marginStart="8dp">
+                android:layout_marginStart="6dp">
 
                 <TextView
                     android:id="@+id/tvCompletedCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="0"
-                    android:textSize="32sp"
+                    android:text="10"
+                    android:textSize="28sp"
                     android:textStyle="bold"
                     android:textColor="#4CAF50"/>
 
@@ -187,7 +182,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Completed"
-                    android:textSize="12sp"
+                    android:textSize="11sp"
                     android:textColor="@color/gray_600"
                     android:layout_marginTop="4dp"/>
             </LinearLayout>
@@ -198,10 +193,10 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Quick Actions"
-            android:textSize="18sp"
+            android:textSize="16sp"
             android:textStyle="bold"
             android:textColor="@color/gray_900"
-            android:layout_marginBottom="12dp"/>
+            android:layout_marginBottom="10dp"/>
 
         <!-- Scan QR Button - Primary Action -->
         <LinearLayout
@@ -211,15 +206,15 @@
             android:orientation="horizontal"
             android:background="@drawable/button_primary_selector"
             android:elevation="6dp"
-            android:padding="20dp"
+            android:padding="16dp"
             android:gravity="center"
             android:layout_marginBottom="12dp"
             android:clickable="true"
             android:focusable="true">
 
             <ImageView
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
                 android:src="@drawable/qrcode"
                 app:tint="@color/white"/>
 
@@ -227,10 +222,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Scan QR Code"
-                android:textSize="18sp"
+                android:textSize="16sp"
                 android:textStyle="bold"
                 android:textColor="@color/white"
-                android:layout_marginStart="16dp"/>
+                android:layout_marginStart="12dp"/>
         </LinearLayout>
 
         <!-- Secondary Actions Row -->
@@ -239,7 +234,7 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:weightSum="3"
-            android:layout_marginBottom="20dp">
+            android:layout_marginBottom="16dp">
 
             <!-- Pending Bookings Button -->
             <LinearLayout
@@ -250,29 +245,30 @@
                 android:orientation="vertical"
                 android:background="@drawable/bg_card"
                 android:elevation="4dp"
-                android:padding="20dp"
+                android:padding="14dp"
                 android:gravity="center"
-                android:layout_marginStart="8dp"
+                android:layout_marginEnd="6dp"
                 android:clickable="true"
                 android:focusable="true">
 
                 <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
                     android:src="@drawable/pending"
                     app:tint="@color/primary_green"
-                    android:padding="8dp"
+                    android:padding="6dp"
                     android:background="@drawable/bg_icon_light"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Pending\nBookings"
-                    android:textSize="14sp"
+                    android:textSize="12sp"
                     android:textStyle="bold"
                     android:textColor="@color/gray_900"
                     android:gravity="center"
-                    android:layout_marginTop="12dp"/>
+                    android:layout_marginTop="8dp"
+                    android:lineSpacingMultiplier="1.1"/>
             </LinearLayout>
 
             <!-- Active Bookings Button -->
@@ -284,29 +280,31 @@
                 android:orientation="vertical"
                 android:background="@drawable/bg_card"
                 android:elevation="4dp"
-                android:padding="20dp"
+                android:padding="14dp"
                 android:gravity="center"
-                android:layout_marginEnd="8dp"
+                android:layout_marginStart="3dp"
+                android:layout_marginEnd="3dp"
                 android:clickable="true"
                 android:focusable="true">
 
                 <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
                     android:src="@drawable/reservation"
                     app:tint="@color/primary_green"
-                    android:padding="8dp"
+                    android:padding="6dp"
                     android:background="@drawable/bg_icon_light"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Active\nBookings"
-                    android:textSize="14sp"
+                    android:textSize="12sp"
                     android:textStyle="bold"
                     android:textColor="@color/gray_900"
                     android:gravity="center"
-                    android:layout_marginTop="12dp"/>
+                    android:layout_marginTop="8dp"
+                    android:lineSpacingMultiplier="1.1"/>
             </LinearLayout>
 
             <!-- Completed Bookings Button -->
@@ -318,46 +316,47 @@
                 android:orientation="vertical"
                 android:background="@drawable/bg_card"
                 android:elevation="4dp"
-                android:padding="20dp"
+                android:padding="14dp"
                 android:gravity="center"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="6dp"
                 android:clickable="true"
                 android:focusable="true">
 
                 <ImageView
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
                     android:src="@drawable/ic_check_circle"
                     app:tint="@color/primary_green"
-                    android:padding="8dp"
+                    android:padding="6dp"
                     android:background="@drawable/bg_icon_light"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Completed\nHistory"
-                    android:textSize="14sp"
+                    android:text="Completed\nBookings"
+                    android:textSize="12sp"
                     android:textStyle="bold"
                     android:textColor="@color/gray_900"
                     android:gravity="center"
-                    android:layout_marginTop="12dp"/>
+                    android:layout_marginTop="8dp"
+                    android:lineSpacingMultiplier="1.1"/>
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Station Status Section (Optional) -->
+        <!-- Station Status Section -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:background="@drawable/bg_card"
             android:elevation="4dp"
-            android:padding="20dp">
+            android:padding="16dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Station Status"
-                android:textSize="16sp"
+                android:textSize="15sp"
                 android:textStyle="bold"
                 android:textColor="@color/gray_900"
                 android:layout_marginBottom="12dp"/>
@@ -378,7 +377,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Available Slots"
-                        android:textSize="12sp"
+                        android:textSize="11sp"
                         android:textColor="@color/gray_600"/>
 
                     <TextView
@@ -394,21 +393,22 @@
 
                 <View
                     android:layout_width="1dp"
-                    android:layout_height="40dp"
-                    android:background="@color/gray_300"/>
+                    android:layout_height="36dp"
+                    android:background="@color/gray_300"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginEnd="12dp"/>
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginStart="20dp">
+                    android:orientation="vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Station Status"
-                        android:textSize="12sp"
+                        android:textSize="11sp"
                         android:textColor="@color/gray_600"/>
 
                     <TextView
@@ -416,12 +416,41 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="● Online"
-                        android:textSize="16sp"
+                        android:textSize="15sp"
                         android:textStyle="bold"
                         android:textColor="@color/primary_green"
                         android:layout_marginTop="4dp"/>
                 </LinearLayout>
             </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnLogout"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:text="Sign Out"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                android:background="@drawable/button_danger_selector"
+                android:elevation="2dp"
+                android:stateListAnimator="@null"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="24dp" />
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:visibility="gone"
+                android:indeterminateTint="@color/primary_green" />
         </LinearLayout>
 
     </LinearLayout>
