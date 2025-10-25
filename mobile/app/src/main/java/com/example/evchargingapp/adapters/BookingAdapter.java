@@ -60,8 +60,8 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.ViewHold
         holder.tvBookingId.setText("Booking ID: " + b.getBookingId());
         
         // Format time range to local time
-        holder.tvTimeRange.setText("Start: " + formatLocalTime(b.getStartTime()) + 
-                                 "\nEnd: " + formatLocalTime(b.getEndTime()));
+        holder.tvTimeRange.setText("Start: " + formatUtcToLocal(b.getStartTimeUtc()) + 
+                                 "\nEnd: " + formatUtcToLocal(b.getEndTimeUtc()));
         
         holder.tvStatus.setText(b.getStatusText());
 
@@ -126,32 +126,19 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.ViewHold
         });
     }
 
-    // Flexible date formatter that handles both local and UTC times
-    private String formatLocalTime(String dateStr) {
+    private String formatUtcToLocal(String utcDateStr) {
         try {
-            // Try local format first
-            SimpleDateFormat sdfLocal = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US);
-            sdfLocal.setTimeZone(TimeZone.getDefault());
-            Date date = sdfLocal.parse(dateStr);
+            SimpleDateFormat sdfUtc = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+            sdfUtc.setTimeZone(TimeZone.getTimeZone("UTC"));
+            Date date = sdfUtc.parse(utcDateStr);
 
-            SimpleDateFormat sdfDisplay = new SimpleDateFormat("MMM dd, yyyy hh:mm a", Locale.US);
-            sdfDisplay.setTimeZone(TimeZone.getDefault());
-            return sdfDisplay.format(date);
+            SimpleDateFormat sdfLocal = new SimpleDateFormat("MMM dd, yyyy hh:mm a", Locale.US);
+            sdfLocal.setTimeZone(TimeZone.getDefault());
+            return sdfLocal.format(date);
 
         } catch (Exception e) {
-            // Fallback: try UTC parsing if local parsing fails
-            try {
-                SimpleDateFormat sdfUtc = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
-                sdfUtc.setTimeZone(TimeZone.getTimeZone("UTC"));
-                Date date = sdfUtc.parse(dateStr);
-
-                SimpleDateFormat sdfDisplay = new SimpleDateFormat("MMM dd, yyyy hh:mm a", Locale.US);
-                sdfDisplay.setTimeZone(TimeZone.getDefault());
-                return sdfDisplay.format(date);
-            } catch (Exception e2) {
-                e2.printStackTrace();
-                return dateStr; // fallback
-            }
+            e.printStackTrace();
+            return utcDateStr; // fallback
         }
     }
 
@@ -160,7 +147,7 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.ViewHold
         return bookings.size();
     }
 
-    // Method to update station name cache
+    // Method to update station name cache (useful to pre-fetch station names)
     public void updateStationNameCache(Map<String, String> stationNames) {
         stationNameCache.putAll(stationNames);
         notifyDataSetChanged();
