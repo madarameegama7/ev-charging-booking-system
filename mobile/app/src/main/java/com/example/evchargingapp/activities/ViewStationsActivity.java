@@ -15,6 +15,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -88,16 +89,28 @@ public class ViewStationsActivity extends AppCompatActivity implements OnMapRead
         for (Station s : stationList) {
             GeoLocation g = s.getGeoLocation();
             LatLng latLng = new LatLng(g.getLatitude(), g.getLongitude());
+
+            float color;
+            if (s.getLocation().equalsIgnoreCase("AC")) {
+                color = BitmapDescriptorFactory.HUE_GREEN;
+            } else if (s.getLocation().equalsIgnoreCase("DC")) {
+                color = BitmapDescriptorFactory.HUE_RED;
+            } else {
+                color = BitmapDescriptorFactory.HUE_AZURE;
+            }
+
             googleMap.addMarker(new MarkerOptions()
                     .position(latLng)
                     .title(s.getStationName())
-                    .snippet(s.getLocation()));
+                    .snippet("Type: " + s.getLocation())
+                    .icon(BitmapDescriptorFactory.defaultMarker(color)));
         }
 
-        // Focus camera on first station
+        // Focus on the first station
         Station first = stationList.get(0);
         GeoLocation g = first.getGeoLocation();
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                 new LatLng(g.getLatitude(), g.getLongitude()), 11f));
     }
+
 }

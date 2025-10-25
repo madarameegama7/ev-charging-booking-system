@@ -24,6 +24,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -56,8 +57,8 @@ public class EVOwnerDashboardActivity extends AppCompatActivity implements OnMap
         btnMyReservations = findViewById(R.id.btnMyReservations);
         btnProfile = findViewById(R.id.btnProfile);
 
-        String nic = SharedPrefsHelper.getNic(this);
-        tvWelcome.setText("Welcome, " + nic);
+        String name = SharedPrefsHelper.getName(this);
+        tvWelcome.setText("Welcome, " + name);
 
         btnLogout.setOnClickListener(v -> {
             SharedPrefsHelper.clear(this);
@@ -105,6 +106,7 @@ public class EVOwnerDashboardActivity extends AppCompatActivity implements OnMap
                         else if (s.equals("approved")) status = 1;
                         else if (s.equals("cancelled")) status = 2;
                         else if (s.equals("completed")) status = 3;
+                        else if (s.equals("active")) status = 4;
                     }
                     b.setStatus(status);
 
@@ -193,9 +195,19 @@ public class EVOwnerDashboardActivity extends AppCompatActivity implements OnMap
     private void addStationMarker(String name, String type, int availableSlots, GeoLocation location) {
         LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
+        float color;
+        if (type.equalsIgnoreCase("AC")) {
+            color = BitmapDescriptorFactory.HUE_GREEN;   // AC = Green
+        } else if (type.equalsIgnoreCase("DC")) {
+            color = BitmapDescriptorFactory.HUE_RED;     // DC = Red
+        } else {
+            color = BitmapDescriptorFactory.HUE_AZURE;   // Unknown = Blue
+        }
+
         googleMap.addMarker(new MarkerOptions()
                 .position(latLng)
                 .title(name)
-                .snippet("Type: " + type + "\nAvailable Slots: " + availableSlots));
+                .snippet("Type: " + type + "\nAvailable Slots: " + availableSlots)
+                .icon(BitmapDescriptorFactory.defaultMarker(color)));
     }
 }

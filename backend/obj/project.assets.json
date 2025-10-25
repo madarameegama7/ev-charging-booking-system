@@ -1619,12 +1619,7 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-<<<<<<< HEAD
       }
-=======
-      },
-      "SdkAnalysisLevel": "10.0.100"
->>>>>>> ea3d94d91d6e608676b32f9b7cc3fb92b99870a7
     },
     "frameworks": {
       "net8.0": {
@@ -1670,12 +1665,16 @@
             "privateAssets": "all"
           }
         },
-<<<<<<< HEAD
         "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.400/PortableRuntimeIdentifierGraph.json"
-=======
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\10.0.100-rc.2.25502.107/PortableRuntimeIdentifierGraph.json"
->>>>>>> ea3d94d91d6e608676b32f9b7cc3fb92b99870a7
       }
     }
-  }
+  },
+  "logs": [
+    {
+      "code": "Undefined",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Problem reading the cache file C:\\Users\\janud\\OneDrive\\Desktop\\SLIIT\\4thYear\\1stSemester\\EAD\\projects\\ev-charging-booking-system\\backend\\obj\\project.nuget.cache : Invalid property identifier character: <. Path 'version', line 3, position 0."
+    }
+  ]
 }
